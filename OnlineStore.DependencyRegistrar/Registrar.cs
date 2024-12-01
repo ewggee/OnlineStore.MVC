@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OnlineStore.Core.Authentication.Services;
 using OnlineStore.Core.Carts.Repositories;
 using OnlineStore.Core.Carts.Services;
 using OnlineStore.Core.Categories.Repositories;
@@ -13,6 +12,7 @@ using OnlineStore.Core.Common.Cache;
 using OnlineStore.Core.Common.DateTimeProviders;
 using OnlineStore.Core.Common.Models;
 using OnlineStore.Core.Common.Redis;
+using OnlineStore.Core.Images;
 using OnlineStore.Core.Images.Repositories;
 using OnlineStore.Core.Images.Services;
 using OnlineStore.Core.ProductAttributes.Repositories;
@@ -43,43 +43,16 @@ namespace OnlineStore.DependencyRegistrar
                 .AddEntityFrameworkStores<MutableOnlineStoreDbContext>()
                 .AddDefaultTokenProviders();
 
-            //var jwtOptions = configuration.GetSection("JwtOptions").Get<JwtOptions>();
-            //services.AddAuthentication()
-            //    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-            //    {
-            //        options.TokenValidationParameters = new TokenValidationParameters
-            //        {
-            //            ValidateIssuer = true,
-            //            ValidateAudience = true,
-            //            ValidateLifetime = true,
-            //            ValidateIssuerSigningKey = true,
-            //            ValidIssuer = jwtOptions.Issuer,
-            //            ValidAudience = jwtOptions.Audience,
-            //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
-            //        };
-            //    });
-
-            //services.AddMassTransit(x =>
-            //{
-            //    x.UsingRabbitMq((context, cfg) =>
-            //    {
-            //        cfg.Host("rabbitmq://localhost", h =>
-            //        {
-            //            h.Username("guest");
-            //            h.Password("guest");
-            //        });
-            //        cfg.ConfigureEndpoints(context);
-            //    });
-            //});
-
-            //var botConfig = configuration.GetSection("TelegramBotOptions").Get<TelegramBotOptions>();
-
-            //services.AddSingleton<ITelegramBotClient>(provider =>
-            //         new TelegramBotClient(botConfig.SecretToken));
-
+            RegisterOptions(services, configuration);
             RegisterRepositories(services, configuration);
             RegisterServices(services, configuration);
             RegisterMapper(services);
+        }
+
+        private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<ImageOptions>(configuration.GetSection("ImagesOptions"));
+            services.Configure<PaginationOptions>(configuration.GetSection("PaginationOptions"));
         }
 
         private static void RegisterRepositories(IServiceCollection services, IConfiguration configuration)
@@ -103,13 +76,12 @@ namespace OnlineStore.DependencyRegistrar
         {
             var redisConfiguration = configuration
                 .GetSection("Redis")
-                .Get<RedisConfiguration>();
+                .Get<RedisConfiguration>()!;
 
             services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfiguration);
 
-            services.AddScoped<IProductAttributeService, ProductAttributeService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-
+            services.AddScoped<IProductAttributeService, ProductAttributeService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IImageService, ImageService>();
@@ -120,11 +92,11 @@ namespace OnlineStore.DependencyRegistrar
             services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
             services.Configure<DecoratorSettings>(configuration.GetSection("DecoratorSettings"));
-            var decorationSettings = configuration.GetSection("DecoratorSettings").Get<DecoratorSettings>();
-            if (decorationSettings?.EnableDecoration == true)
+            var decorationSettings = configuration.GetSection("DecoratorSettings").Get<DecoratorSettings>()!;
+            if (decorationSettings.AllowDecoration)
             {
-                services.Decorate<IProductAttributeService, CachedProductAttributeService>();
-                services.Decorate<ICartService, CachedCartService>();
+                services.TryDecorate<IProductAttributeService, CachedProductAttributeService>();
+                services.TryDecorate<ICartService, CachedCartService>();
             }
         }
 
@@ -135,6 +107,7 @@ namespace OnlineStore.DependencyRegistrar
                 mc.AddProfile(new ProductAttributeMappingProfile());
                 mc.AddProfile(new ProductMappingProfile());
                 mc.AddProfile(new CategoryMappingProfile());
+                mc.AddProfile(new ImageMappingProfile());
             });
 
             IMapper mapper = mapperConfig.CreateMapper();

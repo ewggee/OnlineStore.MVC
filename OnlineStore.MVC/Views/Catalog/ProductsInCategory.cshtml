@@ -1,0 +1,114 @@
+﻿@using OnlineStore.Contracts.Products
+
+@model ProductsListDto
+
+<h4>@Model.CategoryDto.Name</h4>
+
+<div>
+    <!-- Информация о товарах в категории -->
+    <div class="row">
+        @foreach (var product in Model.Result)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="image-container">
+                        <img class="card-img-top" src="@product.MainImageUrl" alt="@product.Name" />
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">@product.Description</p>
+                        <p class="card-text text-success">@product.Price.ToString("C")</p>
+                        <a class="btn btn-primary" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@product.Id">Подробнее</a>
+                        <button class="btn btn-success add-to-cart-btn" data-product-id="@product.Id">Добавить в корзину</button>
+                    </div>
+                </div>
+            </div>
+        }
+        <style>
+            .card-title {
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
+
+            .card-text {
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+
+            .text-success {
+                font-size: 24px;
+            }
+
+            .image-container {
+                max-width: 430px;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .image-container img {
+                width: 100%;
+                max-height: 430px;
+                object-fit: contain;
+            }
+        </style>
+    </div>
+
+    <!-- Пагинация -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            <!-- Назад -->
+            @if (Model.PageNumber > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.PageNumber - 1 })">Назад</a>
+                </li>
+            }
+
+            <!-- Номера страниц -->
+            @{
+                var pagesCount = Math.Ceiling((decimal)Model.TotalCount / Model.PageSize);
+            }
+            @for (var i = 1; i <= pagesCount; i++)
+            {
+                if (i == Model.PageNumber)
+                {
+                    <li class="page-item active">
+                        <span class="page-link">@i</span>
+                    </li>
+                }
+                else if (i <= 3 || i == Model.TotalCount || (i >= Model.PageNumber - 2 && i <= Model.PageNumber + 2))
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i })">@i</a>
+                    </li>
+                }
+                else if (i == 4)
+                {
+                    <li class="page-item">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+                else if (i == pagesCount)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i })">@i</a>
+                    </li>
+                }
+            }
+
+            <!-- Далее -->
+            @if (Model.PageNumber < pagesCount)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.PageNumber + 1 })">Далее</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

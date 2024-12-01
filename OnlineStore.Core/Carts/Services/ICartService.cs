@@ -26,5 +26,20 @@ namespace OnlineStore.Core.Carts.Services
         /// Удаляет товар по ID из корзины.
         /// </summary>
         Task RemoveItemAsync(int productId, CancellationToken cancellation);
+
+        /// <summary>
+        /// Обновляет количество товара в заказе.
+        /// </summary>
+        /// <param name="productId">ID товара.</param>
+        /// <param name="newQuantity">Новое количество.</param>
+        /// <returns>
+        /// <b>true</b> - если количество успешно обновлено.
+        /// </returns>
+        Task<bool> UpdateItemCountAsync(int productId, int newQuantity, CancellationToken cancellation);
+
+        /// <summary>
+        /// Оформляет корзину текущего пользователя.
+        /// </summary>
+        Task Checkout(CancellationToken cancellation);
     }
 }

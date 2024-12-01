@@ -6,7 +6,7 @@
     public class PagedResponse<T>
     {
         /// <summary>
-        /// Общее количество.
+        /// Общее количество записей.
         /// </summary>
         public int TotalCount { get; set; }
 

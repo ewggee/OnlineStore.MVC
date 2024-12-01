@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineStore.Core.Common;
+using OnlineStore.Domain.Entities;
 
 namespace OnlineStore.DataAccess.Common
 {
@@ -27,6 +28,12 @@ namespace OnlineStore.DataAccess.Common
             await MutableDbContext.SaveChangesAsync(cancellation);
         }
 
+        public virtual Task DeleteAsync(T entity, CancellationToken cancellation)
+        {
+            MutableDbContext.Remove(entity);
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
         /// <inheritdoc/>
         public virtual Task<List<T>> GetAllAsync(CancellationToken cancellation)
         {
@@ -40,9 +47,11 @@ namespace OnlineStore.DataAccess.Common
         }
 
         /// <inheritdoc/>
-        public Task UpdateAsync(T entity, CancellationToken cancellation)
+        public virtual Task UpdateAsync(T entity, CancellationToken cancellation)
         {
-            MutableDbContext.Update(entity);
+            MutableDbContext.Set<T>().Attach(entity);
+            MutableDbContext.Entry(entity).State = EntityState.Modified;
+
             return MutableDbContext.SaveChangesAsync(cancellation);
         }
     }

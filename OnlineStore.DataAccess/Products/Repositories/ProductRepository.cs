@@ -15,10 +15,20 @@ namespace OnlineStore.DataAccess.Products.Repositories
         : RepositoryBase<Product>(mutableDbContext, readOnlyDbContext), IProductRepository
     {
         /// <inheritdoc/>
-        public async override Task<List<Product>> GetAllAsync(CancellationToken cancellation)
+        public override Task<List<Product>> GetAllAsync(CancellationToken cancellation)
         {
-            return await ReadOnlyDbContext.Set<Product>()
+            return ReadOnlyDbContext
+                .Set<Product>()
                 .Include(x => x.Category)
+                .ToListAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<Product>> GetProductsByIdsAsync(List<int> ids, CancellationToken cancellation)
+        {
+            return ReadOnlyDbContext
+                .Set<Product>()
+                .Where(p => ids.Contains(p.Id))
                 .ToListAsync(cancellation);
         }
 
@@ -27,38 +37,40 @@ namespace OnlineStore.DataAccess.Products.Repositories
         {
             var query = ReadOnlyDbContext
                 .Set<Product>()
-                .AsQueryable()
+                .Where(p => p.CategoryId == request.CategoryId)
                 .Where(p => !p.IsDeleted);
-
-            if (request.IncludeCategory)
-            {
-                query = query
-                    .Include(p => p.Category);
-            }
-
-            if (request.IncludeImages)
-            {
-                query = query
-                    .Include(p => p.Images);
-            }
-
+            
             query = query
                 .OrderBy(p => p.Id)
                 .Skip(request.Skip);
 
-            if (request.Take != default)
+            if (request.Take != 0)
             {
-                query = query.Take(request.Take);
+                query = query
+                    .Take(request.Take);
             }
 
             return query.ToListAsync(cancellation);
         }
 
         /// <inheritdoc/>
-        public Task<int> GetProductsTotalCountAsync(CancellationToken cancellation)
+        public Task<List<Product>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellation)
+        {
+            var query =
+                ReadOnlyDbContext
+                .Set<Product>()
+                .Where(p => p.IsDeleted == false)
+                .Where(p => p.CategoryId == categoryId);
+
+            return query.ToListAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public Task<int> GetProductsTotalCountAsync(int categoryId, CancellationToken cancellation)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
+                .Where(p => p.CategoryId == categoryId)
                 .Where(p => !p.IsDeleted)
                 .CountAsync(cancellation);
         }
@@ -68,9 +80,21 @@ namespace OnlineStore.DataAccess.Products.Repositories
         {
             return ReadOnlyDbContext
                 .Set<Product>()
-                .Where(p => (p.Id == id) && (!p.IsDeleted))
-                .Include(x => x.Images)
+                .Where(p => p.Id == id)
+                .Where(p => !p.IsDeleted)
+                .Include(p => p.Images)
                 .FirstOrDefaultAsync();
+        }
+
+        /// <inheritdoc/>
+        public override Task UpdateAsync(Product product, CancellationToken cancellation)
+        {
+            MutableDbContext.Set<Product>().Attach(product);
+
+            MutableDbContext.Entry(product).State = EntityState.Modified;
+            MutableDbContext.Entry(product).Property(p => p.CreatedAt).IsModified = false;
+
+            return MutableDbContext.SaveChangesAsync(cancellation);
         }
     }
 }

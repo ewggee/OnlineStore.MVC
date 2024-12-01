@@ -9,7 +9,7 @@
         /// Получает сущность по идентификатору.
         /// </summary>
         /// <param name="id">Идентификатор.</param>
-        Task<T> GetAsync(int id);
+        Task<T?> GetAsync(int id);
 
         /// <summary>
         /// Добавляет сущность в БД.
@@ -30,5 +30,12 @@
         /// <param name="entity">Сущность.</param>
         /// <param name="cancellation">Токен отмены операции.</param>
         Task UpdateAsync(T entity, CancellationToken cancellation);
+
+        /// <summary>
+        /// Удаляет существующую сущность.
+        /// </summary>
+        /// <param name="entity">Сущность.</param>
+        /// <param name="cancellation">Токен отмены операции.</param>
+        Task DeleteAsync(T entity, CancellationToken cancellation);
     }
 }

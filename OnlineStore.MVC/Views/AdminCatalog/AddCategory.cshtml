@@ -1,0 +1,21 @@
+﻿@using OnlineStore.Contracts.Categories
+
+@model CategoryDto
+
+<h4>Добавление категории</h4>
+
+<form asp-controller="AdminCatalog" asp-action="AddCategory" method="post">
+    <div>
+        <label asp-for="Name">Название</label>
+        <input size="30" asp-for="Name" />
+    </div>
+    <div>
+        <label asp-for="ParentCategoryId">Родительская категория</label>
+        <select asp-for="ParentCategoryId" asp-items="ViewBag.Categories">
+            <option value="">Без родительской категории</option>
+        </select>
+    </div>
+    <div>
+        <input type="submit" value="Добавить" />
+    </div>
+</form>

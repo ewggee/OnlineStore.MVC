@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Domain.Entities;
+using System.Transactions;
 
 namespace OnlineStore.Core.Authentication.Services
 {
@@ -25,7 +26,7 @@ namespace OnlineStore.Core.Authentication.Services
         }
 
         /// <inheritdoc/>
-        public Task<IdentityResult> RegisterAsync(string email, string password, CancellationToken cancellation)
+        public async Task<IdentityResult> RegisterAsync(string email, string password, CancellationToken cancellation)
         {
             var user = new ApplicationUser
             {
@@ -33,7 +34,28 @@ namespace OnlineStore.Core.Authentication.Services
                 Email = email,
             };
 
-            return _userManager.CreateAsync(user, password);
+            IdentityResult result = new();
+            using (var transaction = new TransactionScope(
+                TransactionScopeAsyncFlowOption.Enabled))
+            {
+                try
+                {
+                    result = await _userManager.CreateAsync(user, password);
+                    if (result.Succeeded)
+                    {
+                        result = await _userManager.AddToRoleAsync(user, "user");
+                    }
+
+                    transaction.Complete();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Откат миграции: {ex.Message}");
+                    throw;
+                }
+            }
+               
+            return result;
         }
 
         /// <inheritdoc/>
@@ -41,7 +63,7 @@ namespace OnlineStore.Core.Authentication.Services
         {
             var user = await _userManager.FindByEmailAsync(email)
                 ?? throw new UnauthorizedAccessException("Неверный email.");
-
+            
             var isPasswordMatched = await _userManager.CheckPasswordAsync(user, password);
             if (!isPasswordMatched)
             {

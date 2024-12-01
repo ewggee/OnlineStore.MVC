@@ -67,6 +67,13 @@ namespace OnlineStore.Core.Carts.Services
                 cancellation: cancellation);
         }
 
+        /// <inheritdoc/>
+        public Task<bool> UpdateItemCountAsync(int productId, int newQuantity, CancellationToken cancellation)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveItemAsync(int productId, CancellationToken cancellation)
         {
             await _cartService.RemoveItemAsync(productId, cancellation);
@@ -79,6 +86,11 @@ namespace OnlineStore.Core.Carts.Services
             }
 
             await _cacheService.RemoveAsync(CartRedisKeyHelper.GetCartItemsCountKey(user.Id), cancellation);
+        }
+
+        public Task Checkout(CancellationToken cancellation)
+        {
+            throw new NotImplementedException();
         }
     }
 }

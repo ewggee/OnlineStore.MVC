@@ -22,7 +22,7 @@ namespace OnlineStore.DataAccess.Carts.Configurations
                 .IsRequired()
                 .HasMaxLength(256);
 
-            // Инициализирование
+            // Сидирование
             builder.HasData(
                 Enum.GetValues(typeof(CartStatusEnum))
                 .Cast<CartStatusEnum>()

@@ -1,30 +1,35 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using OnlineStore.Contracts.Images;
 using OnlineStore.Core.Images.Repositories;
 using OnlineStore.Domain.Entities;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OnlineStore.Core.Images.Services
 {
     public sealed class ImageService : IImageService
     {
-        private readonly IImageRepository _repository;
+        private readonly IImageRepository _imageRepository;
+        private readonly IMapper _mapper;
+        private readonly ImageOptions _imageOptions;
 
         public ImageService(
-            IImageRepository repository)
+            IImageRepository imageRepository,
+            IMapper mapper,
+            IOptions<ImageOptions> imageOptions)
         {
-            _repository = repository;
+            _imageRepository = imageRepository;
+            _mapper = mapper;
+            _imageOptions = imageOptions.Value;
         }
 
         /// <inheritdoc/>
-        public async Task<ImageDto> GetImageDtoAsync(int id, CancellationToken cancellation)
+        public async Task<ImageDto> GetAsync(int imageId, CancellationToken cancellation)
         {
-            var image = await _repository.GetAsync(id);
+            var image = await _imageRepository.GetAsync(imageId);
 
-            return new ImageDto
-            {
-                ContentType = image.ContentType,
-                Data = image.Content
-            };
+            return _mapper.Map<ImageDto>(image);
         }
 
         /// <inheritdoc/>
@@ -38,10 +43,10 @@ namespace OnlineStore.Core.Images.Services
             var urls = new List<string>(images.Length);
             foreach (var image in images)
             {
-                urls.Add($"https://localhost:7194/images/{image.Id}");
+                urls.Add(string.Concat(_imageOptions.ImagesUrl, image.Id));
             }
 
-            return [.. urls];
+            return urls.ToArray();
         }
 
         /// <inheritdoc/>
@@ -54,62 +59,57 @@ namespace OnlineStore.Core.Images.Services
                 ContentType = imageFile.ContentType
             };
 
-            var imageId = await _repository.SaveAsync(productImage, cancellation);
-
-            return $"https://localhost:7194/images/{imageId}";
+            var imageId = await _imageRepository.SaveAsync(productImage, cancellation);
+            
+            return string.Concat(_imageOptions.ImagesUrl, imageId);
         }
 
         /// <inheritdoc/>
         public async Task<IReadOnlyCollection<string>> SaveImagesAsync(List<IFormFile> ImageFiles, CancellationToken cancellation)
         {
-            var result = new List<string>(ImageFiles.Count);
+            var generatedURLs = new List<string>(ImageFiles.Count);
             foreach (var imageFile in ImageFiles)
             {
                 var imageUrl = await SaveImageAsync(imageFile, cancellation);
-                result.Add(imageUrl);
+                generatedURLs.Add(imageUrl);
             }
 
-            return result.ToArray();
+            return generatedURLs.ToArray();
         }
 
         /// <inheritdoc/>
         public async Task<ProductImage[]> SaveProductImagesAsync(string[] imagesUrls, Product product, CancellationToken cancellation)
         {
-            if (imagesUrls.Length == 0)
-            {
-                return [];
-            }
+            var result = new List<ProductImage>();
 
-            var result = new List<ProductImage>(imagesUrls.Length);
+            var imageId = ExtractImageId(product.ImageUrl);
+            var existingImage = await _imageRepository.GetAsync(imageId);
+
+            existingImage.Product = product;
+
+            result.Add(existingImage);
+
             foreach (var imageUrl in imagesUrls)
             {
-                var imageId = ExtractImageId(imageUrl);
-                var existingImage = await _repository.GetAsync(imageId);
-
-                if (existingImage == null)
-                {
-                    throw new Exception();//TODO: подумать
-                }
+                imageId = ExtractImageId(imageUrl);
+                existingImage = await _imageRepository.GetAsync(imageId);
 
                 existingImage.Product = product;
 
                 result.Add(existingImage);
             }
-
+            
             return result.ToArray();
         }
 
         /// <inheritdoc/>
-        private static int ExtractImageId(string url)
+        public int ExtractImageId(string url)
         {
-            int lastSlashIndex = url.LastIndexOf('/');
-            if (lastSlashIndex != -1 && lastSlashIndex + 1 < url.Length)
-            {
-                var stringId = url.Substring(lastSlashIndex + 1);
+            var lastSlashIndex = url.LastIndexOf('/');
+            
+            var stringId = url.Substring(lastSlashIndex + 1);
 
-                return int.Parse(stringId);
-            }
-            throw new Exception();//TODO: подумать
+            return int.Parse(stringId);
         }
 
         /// <inheritdoc/>
@@ -119,6 +119,13 @@ namespace OnlineStore.Core.Images.Services
             await imageFile.CopyToAsync(memoryStream, cancellation);
 
             return memoryStream.ToArray();
+        }
+
+        public async Task DeleteAsync(int imageId, CancellationToken cancellation)
+        {
+            var image = new ProductImage { Id = imageId};
+
+            await _imageRepository.DeleteAsync(image, cancellation);
         }
     }
 }
