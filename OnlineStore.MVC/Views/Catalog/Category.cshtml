@@ -1,0 +1,16 @@
+﻿@using OnlineStore.Contracts.Categories
+
+@model List<CategoryDto>
+
+<h4>@ViewBag.Title</h4>
+
+<ul>
+    @foreach (var subCategory in Model)
+    {
+        <li>
+            <a asp-controller="Catalog" asp-action="GetCategory" asp-route-categoryId="@subCategory.Id">
+                @subCategory.Name
+            </a>
+        </li>
+    }
+</ul>

@@ -21,9 +21,9 @@
         public DateTime OrderDate { get; set; }
 
         /// <summary>
-        /// Сумма заказа.
+        /// Общая сумма заказа.
         /// </summary>
-        public decimal TotalAmount { get; set; }
+        public decimal TotalPrice { get; set; }
 
         /// <summary>
         /// Идентификатор статуса заказа.

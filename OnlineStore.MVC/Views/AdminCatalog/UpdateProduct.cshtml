@@ -1,0 +1,265 @@
+﻿@using OnlineStore.Contracts.Products
+
+@model ShortProductDto
+
+<div class="col-md-4 mb-4" style="margin: 0 auto;">
+    <form asp-controller="AdminCatalog" asp-action="UpdateProduct" method="post" id="updateProductForm">
+        <input asp-for="Id" type="hidden" value="@Model.Id" />
+        <div>
+            <label for="mainImage">Титульное изображение</label>
+            <input type="file" class="form-control" id="mainImage" name="mainImage" value="@Model.MainImageUrl" />
+        </div>
+        <div id="mainImagePreview">
+            @if (!string.IsNullOrEmpty(Model.MainImageUrl))
+            {
+                <div style="position: relative; display: inline-block; margin-right: 10px;">
+                    <img src="@Model.MainImageUrl" style="width: 150px;" />
+                    <button type="button" id="removeMainImage" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer;">x</button>
+                </div>
+                <input type="hidden" name="MainImageUrl" value="@Model.MainImageUrl" />
+            }
+        </div>
+
+        <div class="form-group">
+            <label for="otherImages">Дополнительные изображения</label>
+            <input type="file" class="form-control" id="otherImages" name="otherImages" multiple />
+        </div>
+        <div id="imagePreviews">
+            @foreach (var imageUrl in Model.ImagesUrls)
+            {
+                <div style="position: relative; display: inline-block; margin-right: 10px;">
+                    <img src="@imageUrl" style="width: 150px;" />
+                    <button type="button" class="removeImage" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer;">X</button>
+                    <input type="hidden" name="ImagesUrls" value="@imageUrl" />
+                </div>
+            }
+        </div>
+
+        <div>
+            <label asp-for="@Model.Name">Название</label>
+            <textarea class="form-control" asp-for="@Model.Name" rows="2" required></textarea>
+        </div>
+        <div>
+            <label asp-for="@Model.Description">Описание</label>
+            <textarea class="form-control" asp-for="@Model.Description" rows="4" required></textarea>
+        </div>
+        <div>
+            <label asp-for="@Model.CategoryId">Категория</label>
+            <select class="form-control" asp-for="@Model.CategoryId" asp-items="ViewBag.Categories"></select>
+        </div>
+        <div>
+            <label asp-for="@Model.Price">Цена</label>
+            <input type="number" class="form-control" asp-for="@Model.Price" step="0.01" min="0" required />
+        </div>
+        <div>
+            <label asp-for="@Model.StockQuantity">Товаров в наличии</label>
+            <input type="number" class="form-control" asp-for="@Model.StockQuantity" step="1" min="0" required />
+        </div>
+        <div>
+            <input class="btn btn-primary" type="submit" value="Применить" />
+        </div>
+    </form>
+
+    <form asp-area="" asp-controller="AdminCatalog" asp-action="DeleteProduct" asp-route-productId="@Model.Id" method="post">
+        <div>
+            <input class="btn btn-primary" type="submit" value="Удалить" />
+        </div>    
+    </form>
+</div>
+
+<script>
+    // Существующее титульное изображение
+    document.addEventListener('DOMContentLoaded', function () {
+        const mainImageInput = document.getElementById('mainImage');
+        if (@string.IsNullOrEmpty(Model.MainImageUrl)) {
+            mainImageInput.removeAttribute('required');
+        }
+    });
+
+    const removeMainImageButton = document.getElementById('removeMainImage');
+    const imgContainer = document.querySelector('#mainImagePreview img');
+    const url = '@Model.MainImageUrl';
+    removeMainImageButton.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        fetch('@Url.Action("DeleteImage", "Images")', {
+            method: 'POST',
+            body: JSON.stringify({ imageUrl: url }),
+            headers: { 'Content-Type': 'application/json' }
+        }).then(response => {
+            if (response.ok) {
+                imgContainer.parentElement.remove();
+                document.querySelector(`input[name="MainImageUrl"]`).remove();
+                const mainImageInput = document.getElementById('mainImage');
+                mainImageInput.removeAttribute('required');
+                mainImageInput.value = '';
+            }
+        });
+    });
+
+    // Существующие дополнительные изображения
+    const imagePreviewsContainer = document.getElementById('imagePreviews');
+    imagePreviewsContainer.addEventListener('click', function () {
+        if (event.target.classList.contains('removeImage')) {
+            event.preventDefault();
+            const imgContainer = event.target.closest('div').querySelector('img');
+            const urlInput = event.target.closest('div').querySelector('input[type="hidden"]');
+            const url = urlInput.value;
+
+            fetch('@Url.Action("DeleteImage", "Images")', {
+                method: 'POST',
+                body: JSON.stringify({ imageUrl: url }),
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (response.ok) {
+                    imgContainer.closest('div').remove();
+                }
+            });
+        }
+    });
+
+    // Новое титульное изображение
+    document.getElementById('mainImage').addEventListener('change', function () {
+        const file = this.files[0];
+        const formData = new FormData();
+        formData.append('imageFiles', file);
+
+        fetch('@Url.Action("UploadImages", "Images")', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    alert("Поддерживаются файлы только формата PNG, JPG или JPEG.");
+                    const mainImageInput = document.getElementById('mainImage');
+                    mainImageInput.value = '';
+                    return;
+                }
+
+                const mainImagePreview = document.getElementById('mainImagePreview');
+                mainImagePreview.innerHTML = '';
+
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                imgContainer.style.display = 'inline-block';
+                imgContainer.style.marginRight = '10px';
+
+                const imgElement = document.createElement('img');
+                const url = data[0];
+                imgElement.src = url;
+                imgElement.style.width = '150px';
+                imgContainer.appendChild(imgElement);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'x';
+                deleteButton.style.position = 'absolute';
+                deleteButton.style.top = '5px';
+                deleteButton.style.right = '5px';
+                deleteButton.style.backgroundColor = 'red';
+                deleteButton.style.color = 'white';
+                deleteButton.style.border = 'none';
+                deleteButton.style.borderRadius = '50%';
+                deleteButton.style.cursor = 'pointer';
+                deleteButton.addEventListener('click', function () {
+                    event.preventDefault();
+                    fetch('@Url.Action("DeleteImage", "Images")', {
+                        method: 'POST',
+                        body: JSON.stringify({ imageUrl: url }),
+                        headers: { 'Content-Type': 'application/json' }
+                    }).then(response => {
+                        if (response.ok) {
+                            imgContainer.remove();
+                            document.querySelector(`input[name="MainImageUrl"]`).remove();
+                            const mainImageInput = document.getElementById('mainImage');
+                            mainImageInput.value = '';
+                        }
+                    });
+                });
+
+                imgContainer.appendChild(deleteButton);
+                mainImagePreview.appendChild(imgContainer);
+
+                // Добавление URL титульного изображения в скрытое поле
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'MainImageUrl';
+                input.value = url;
+                document.getElementById('updateProductForm').appendChild(input);
+            });
+    });
+
+    // Новые дополнительные изображения
+    document.getElementById('otherImages').addEventListener('change', function () {
+        const files = this.files;
+        const formData = new FormData();
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('imageFiles', files[i]);
+        }
+
+        fetch('@Url.Action("UploadImages", "Images")', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    alert("Поддерживаются файлы только формата PNG, JPG или JPEG.");
+                    const otherImagesInput = document.getElementById('otherImages');
+                    otherImagesInput.value = '';
+                    return;
+                }
+
+                const imagePreviews = document.getElementById('imagePreviews');
+                imagePreviews.innerHTML = '';
+
+                data.forEach((url, index) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.style.position = 'relative';
+                    imgContainer.style.display = 'inline-block';
+                    imgContainer.style.marginRight = '10px';
+
+                    const imgElement = document.createElement('img');
+                    imgElement.src = url;
+                    imgElement.style.width = '150px';
+                    imgContainer.appendChild(imgElement);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'X';
+                    deleteButton.style.position = 'absolute';
+                    deleteButton.style.top = '5px';
+                    deleteButton.style.right = '5px';
+                    deleteButton.style.backgroundColor = 'red';
+                    deleteButton.style.color = 'white';
+                    deleteButton.style.border = 'none';
+                    deleteButton.style.borderRadius = '50%';
+                    deleteButton.style.cursor = 'pointer';
+                    deleteButton.addEventListener('click', function () {
+                        event.preventDefault();
+                        fetch('@Url.Action("DeleteImage", "Images")', {
+                            method: 'POST',
+                            body: JSON.stringify({ imageUrl: url }),
+                            headers: { 'Content-Type': 'application/json' }
+                        }).then(response => {
+                            if (response.ok) {
+                                imgContainer.remove();
+                                document.querySelector(`input[name="ImagesUrls"][value="${url}"]`).remove();
+                                const otherImagesInput = document.getElementById('otherImages');
+                                otherImagesInput.value = '';
+                            }
+                        });
+                    });
+
+                    imgContainer.appendChild(deleteButton);
+                    imagePreviews.appendChild(imgContainer);
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ImagesUrls';
+                    input.value = url;
+                    document.getElementById('updateProductForm').appendChild(input);
+                });
+            });
+    });
+</script>

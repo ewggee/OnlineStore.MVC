@@ -16,13 +16,18 @@
         public string Name { get; set; } = default!;
 
         /// <summary>
-        /// Идентификатор родительской категории.
+        /// ID родительской категории.
         /// </summary>
         public int? ParentCategoryId { get; set; }
 
         /// <summary>
-        /// Родительская категория.
+        /// Навигационное свойство родительской категории.
         /// </summary>
         public Category? ParentCategory { get; set; }
+
+        /// <summary>
+        /// Навигационное свойство товаров в категории.
+        /// </summary>
+        public ICollection<Product> Products { get; set; } = [];
     }
 }

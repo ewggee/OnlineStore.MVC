@@ -1,17 +1,14 @@
 ﻿namespace OnlineStore.Domain.Entities
 {
     /// <summary>
-    /// Способо оповещения пользователя.
+    /// Способы оповещения пользователя.
     /// </summary>
     public sealed class NotificationChannel
     {
-        /// <summary>
-        /// Идентификатор.
-        /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// Наименование.
+        /// Название.
         /// </summary>
         public string Name { get; set; }
     }

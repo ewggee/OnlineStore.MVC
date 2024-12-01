@@ -9,7 +9,8 @@ namespace OnlineStore.Infrastructure.Mappings
         public CategoryMappingProfile()
         {
             CreateMap<Category, CategoryDto>()
-                .ForMember(dest => dest.Id, o => o.MapFrom(src => src.Id));
+                .ForMember(dest => dest.Id, o => o.MapFrom(src => src.Id))
+                .ReverseMap();
         }
     }
 }

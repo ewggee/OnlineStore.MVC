@@ -10,12 +10,12 @@
         /// <summary>
         /// Название.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
 
         /// <summary>
         /// Описание.
         /// </summary>
-        public string Description { get; set; }
+        public string Description { get; set; } = default!;
 
         /// <summary>
         /// Цена.
@@ -33,9 +33,9 @@
         public int? CategoryId { get; set; }
 
         /// <summary>
-        /// Главное изображение.
+        /// Титульное изображение.
         /// </summary>
-        public string MainImageUrl { get; set; }
+        public string MainImageUrl { get; set; } = default!;
 
         /// <summary>
         /// Список изображений.

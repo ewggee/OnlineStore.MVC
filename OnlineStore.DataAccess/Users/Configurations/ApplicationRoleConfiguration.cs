@@ -11,6 +11,22 @@ namespace OnlineStore.DataAccess.Users.Configurations
             builder.ToTable("application_roles");
 
             builder.HasKey(ar => ar.Id);
+
+            // Сидирование
+            builder.HasData(
+                new ApplicationRole
+                {
+                    Id = 1,
+                    Name = "user",
+                    NormalizedName = "USER",
+                },
+                new ApplicationRole
+                {
+                    Id = 2,
+                    Name = "admin",
+                    NormalizedName = "ADMIN",
+                }
+            );
         }
     }
 }

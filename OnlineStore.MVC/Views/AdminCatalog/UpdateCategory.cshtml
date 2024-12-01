@@ -1,0 +1,31 @@
+﻿@using OnlineStore.Contracts.Categories
+
+@model CategoryWithSubcategoriesViewModel
+
+<h4>Редактирование категории</h4>
+
+<form asp-controller="AdminCatalog" asp-action="UpdateCategory" method="post">
+    <input type="hidden" asp-for="CategoryDto!.Id" />
+    <div>
+        <label asp-for="CategoryDto!.Name">Название</label>
+        <input size="30" asp-for="CategoryDto!.Name" value="@Model.CategoryDto!.Name"/>
+    </div>
+    <div>
+        <label asp-for="CategoryDto!.ParentCategoryId">Родительская категория</label>
+        <select asp-for="CategoryDto!.ParentCategoryId" asp-items="ViewBag.Categories">
+            <option value="">Без родительской категории</option>
+        </select>
+    </div>
+    <div>
+        <input class="btn btn-primary" type="submit" value="Применить" />
+    </div>
+</form>
+
+@if (ViewBag.Products.Count == 0 && Model.Subcategories?.Count == 0)
+{
+    <form asp-controller="AdminCatalog" asp-action="DeleteCategory" asp-route-categoryId="@Model.CategoryDto.Id" method="post">
+        <div>
+            <input class="btn btn-primary" type="submit" value="Удалить" />
+        </div>    
+    </form>
+}

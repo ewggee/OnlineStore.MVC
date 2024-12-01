@@ -9,8 +9,9 @@ namespace OnlineStore.Core.Images.Repositories
     public interface IImageRepository : IRepository<ProductImage>
     {
         /// <summary>
-        /// Сохраняет изображение в БД.
+        /// Сохраняет изображение в БД и возвращает ID для формирования URL.
         /// </summary>
+        /// <returns>ID изображения.</returns>
         Task<int> SaveAsync(ProductImage image, CancellationToken cancellation);
 
         /// <summary>

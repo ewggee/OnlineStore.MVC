@@ -28,7 +28,7 @@
         /// <summary>
         /// Идентификатор категории.
         /// </summary>
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
 
         /// <summary>
         /// Ссылка на главное изображение товара.
@@ -43,12 +43,12 @@
         /// <summary>
         /// Дата создания.
         /// </summary>
-        public DateTime Created { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         /// <summary>
         /// Дата модификации.
         /// </summary>
-        public DateTime? Updated { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         /// <summary>
         /// Признак удаление товара.
@@ -56,12 +56,12 @@
         public bool IsDeleted { get; set; }
 
         /// <summary>
-        /// Категория.
+        /// Навигационное свойство категории.
         /// </summary>
         public Category? Category { get; set; }
 
         /// <summary>
-        /// Изображения товара.
+        /// Навигационное свойство изображений товара.
         /// </summary>
         public ICollection<ProductImage> Images { get; set; } = [];
     }

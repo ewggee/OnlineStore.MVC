@@ -15,7 +15,8 @@ namespace OnlineStore.DataAccess.Carts.Repositories
         public Task<Cart> GetCartByUserAsync(int userId, CancellationToken cancellation)
         {
             return MutableDbContext.Set<Cart>()
-                .Where(c => (c.UserId == userId) && (c.StatusId == (int)CartStatusEnum.New))
+                .Where(c => c.UserId == userId)
+                .Where(c => c.StatusId == (int)CartStatusEnum.New)
                 .Include(c => c.Products)
                 .FirstOrDefaultAsync(cancellation);
         }

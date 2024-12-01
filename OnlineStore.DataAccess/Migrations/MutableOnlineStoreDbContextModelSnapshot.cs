@@ -152,6 +152,20 @@ namespace OnlineStore.DataAccess.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("application_roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "user",
+                            NormalizedName = "USER"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "admin",
+                            NormalizedName = "ADMIN"
+                        });
                 });
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.ApplicationUser", b =>
@@ -201,9 +215,6 @@ namespace OnlineStore.DataAccess.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
-
-                    b.Property<long?>("TelegramChatId")
-                        .HasColumnType("bigint");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -357,17 +368,20 @@ namespace OnlineStore.DataAccess.Migrations
                         new
                         {
                             Id = 2,
-                            Name = "Гитары"
+                            Name = "Гитары",
+                            ParentCategoryId = 1
                         },
                         new
                         {
                             Id = 3,
-                            Name = "Клавишные"
+                            Name = "Клавишные",
+                            ParentCategoryId = 1
                         },
                         new
                         {
                             Id = 4,
-                            Name = "Ударные"
+                            Name = "Ударные",
+                            ParentCategoryId = 1
                         },
                         new
                         {
@@ -425,6 +439,121 @@ namespace OnlineStore.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("OnlineStore.Domain.Entities.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("order_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("order_date");
+
+                    b.Property<int>("OrderStatusId")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_status_id");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_price");
+
+                    b.Property<int?>("UserId")
+                        .IsRequired()
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderStatusId");
+
+                    b.ToTable("orders", (string)null);
+                });
+
+            modelBuilder.Entity("OnlineStore.Domain.Entities.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("order_item_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_id");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("order_items", (string)null);
+                });
+
+            modelBuilder.Entity("OnlineStore.Domain.Entities.OrderStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("order_status_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("order_statuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Принят"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "В обработке"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "В пути"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Доставлен"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Отменен"
+                        });
+                });
+
             modelBuilder.Entity("OnlineStore.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -434,13 +563,13 @@ namespace OnlineStore.DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("integer")
                         .HasColumnName("category_id");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created");
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -452,7 +581,9 @@ namespace OnlineStore.DataAccess.Migrations
                         .HasColumnName("image_url");
 
                     b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("deleted");
 
                     b.Property<string>("Name")
@@ -462,23 +593,49 @@ namespace OnlineStore.DataAccess.Migrations
                         .HasColumnName("name");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(14, 4)
-                        .HasColumnType("numeric(14,4)")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
                         .HasColumnName("price");
 
                     b.Property<int>("StockQuantity")
                         .HasColumnType("integer")
                         .HasColumnName("stock_quantity");
 
-                    b.Property<DateTime?>("Updated")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated");
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
                     b.ToTable("products", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryId = 5,
+                            CreatedAt = new DateTime(2024, 12, 1, 19, 39, 0, 949, DateTimeKind.Utc).AddTicks(6166),
+                            Description = "ROCKDALE Stars PB Bass – универсальная бас-гитара с формой корпуса пресижн бас (precision bass). Звукосниматель типа сплит-сингл (split-single) позволяет гитаре звучать особенно напористо, дает характерный мощный звук с особенно выраженными средними частотами. Корпус гитары изготовлен из тополя, гриф из клена с профилем C-Shape. Накладка грифа из HPL-композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн. Струны 45-105 из никелированной стали. В комплект входит набор ключей для отстройки гитары, кабель для подключения Jack-Jack и инструкция по уходу за иструментом. Мензура 864мм.",
+                            ImageUrl = "https://avatars.mds.yandex.net/get-mpic/1937077/img_id1984092563303990645.jpeg/optimize",
+                            IsDeleted = false,
+                            Name = "ROCKDALE Stars Precision Bass",
+                            Price = 13599m,
+                            StockQuantity = 134
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryId = 6,
+                            CreatedAt = new DateTime(2024, 12, 1, 19, 39, 0, 949, DateTimeKind.Utc).AddTicks(6172),
+                            Description = "ROCKDALE Stars HT HSS – универсальная электрогитара, полностью выполненная в стильном черном цвете. Подходит для обучения. Форма корпуса стратокастер (stratocaster), керамические звукосниматели HSS, 5-ти позиционный переключатель, 2 ручки тона(tone), ручка громкости(volume) и фиксированный бридж (hardtail bridge) дают возможность исполнять любой стиль музыки. Корпус из тополя, гриф из клена с профилем C-Shape. Накладка из HPL- композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн на грифом. Струны 10-46 из никелированной стали. В комплект входят ключи для отстройки гитары, кабель, для подключения Jack-Jack и инструкция по уходу за инструментом.",
+                            ImageUrl = "https://avatars.mds.yandex.net/get-mpic/1522540/img_id8828176765638498087.jpeg/optimize",
+                            IsDeleted = false,
+                            Name = "ROCKDALE Stars HT HSS Black Limited Edition",
+                            Price = 11899m,
+                            StockQuantity = 98
+                        });
                 });
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.ProductAttribute", b =>
@@ -688,11 +845,43 @@ namespace OnlineStore.DataAccess.Migrations
                         .HasForeignKey("ApplicationUserId");
                 });
 
+            modelBuilder.Entity("OnlineStore.Domain.Entities.Order", b =>
+                {
+                    b.HasOne("OnlineStore.Domain.Entities.OrderStatus", "OrderStatus")
+                        .WithMany()
+                        .HasForeignKey("OrderStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrderStatus");
+                });
+
+            modelBuilder.Entity("OnlineStore.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("OnlineStore.Domain.Entities.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OnlineStore.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("OnlineStore.Domain.Entities.Product", b =>
                 {
                     b.HasOne("OnlineStore.Domain.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
                 });
@@ -715,6 +904,16 @@ namespace OnlineStore.DataAccess.Migrations
             modelBuilder.Entity("OnlineStore.Domain.Entities.Cart", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("OnlineStore.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("OnlineStore.Domain.Entities.Order", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.Product", b =>

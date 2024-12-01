@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace OnlineStore.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class CreateDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,6 @@ namespace OnlineStore.DataAccess.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TelegramChatId = table.Column<long>(type: "bigint", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -276,13 +275,13 @@ namespace OnlineStore.DataAccess.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     description = table.Column<string>(type: "text", nullable: false),
-                    price = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false),
-                    category_id = table.Column<int>(type: "integer", nullable: true),
+                    price = table.Column<decimal>(type: "numeric(8,2)", precision: 8, scale: 2, nullable: false),
+                    category_id = table.Column<int>(type: "integer", nullable: false),
                     image_url = table.Column<string>(type: "text", nullable: true),
                     stock_quantity = table.Column<int>(type: "integer", nullable: false),
-                    created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    deleted = table.Column<bool>(type: "boolean", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -291,7 +290,8 @@ namespace OnlineStore.DataAccess.Migrations
                         name: "FK_products_categories_category_id",
                         column: x => x.category_id,
                         principalTable: "categories",
-                        principalColumn: "category_id");
+                        principalColumn: "category_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -345,6 +345,15 @@ namespace OnlineStore.DataAccess.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "application_roles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { 1, null, "user", "USER" },
+                    { 2, null, "admin", "ADMIN" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "attribute_types",
                 columns: new[] { "attribute_type_id", "name" },
                 values: new object[,]
@@ -374,13 +383,7 @@ namespace OnlineStore.DataAccess.Migrations
             migrationBuilder.InsertData(
                 table: "categories",
                 columns: new[] { "category_id", "name", "parent_category_id" },
-                values: new object[,]
-                {
-                    { 1, "Музыкальные инструменты", null },
-                    { 2, "Гитары", null },
-                    { 3, "Клавишные", null },
-                    { 4, "Ударные", null }
-                });
+                values: new object[] { 1, "Музыкальные инструменты", null });
 
             migrationBuilder.InsertData(
                 table: "notification_channels",
@@ -397,8 +400,20 @@ namespace OnlineStore.DataAccess.Migrations
                 columns: new[] { "category_id", "name", "parent_category_id" },
                 values: new object[,]
                 {
+                    { 2, "Гитары", 1 },
+                    { 3, "Клавишные", 1 },
+                    { 4, "Ударные", 1 },
                     { 5, "Бас гитары", 2 },
                     { 6, "Электрогитары", 2 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "products",
+                columns: new[] { "product_id", "category_id", "created_at", "description", "image_url", "name", "price", "stock_quantity", "updated_at" },
+                values: new object[,]
+                {
+                    { 1, 5, new DateTime(2024, 11, 14, 16, 41, 28, 169, DateTimeKind.Utc).AddTicks(2141), "ROCKDALE Stars PB Bass – универсальная бас-гитара с формой корпуса пресижн бас (precision bass). Звукосниматель типа сплит-сингл (split-single) позволяет гитаре звучать особенно напористо, дает характерный мощный звук с особенно выраженными средними частотами. Корпус гитары изготовлен из тополя, гриф из клена с профилем C-Shape. Накладка грифа из HPL-композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн. Струны 45-105 из никелированной стали. В комплект входит набор ключей для отстройки гитары, кабель для подключения Jack-Jack и инструкция по уходу за иструментом. Мензура 864мм.", "https://avatars.mds.yandex.net/get-mpic/1937077/img_id1984092563303990645.jpeg/optimize", "ROCKDALE Stars Precision Bass", 13599m, 134, null },
+                    { 2, 6, new DateTime(2024, 11, 14, 16, 41, 28, 169, DateTimeKind.Utc).AddTicks(2147), "ROCKDALE Stars HT HSS – универсальная электрогитара, полностью выполненная в стильном черном цвете. Подходит для обучения. Форма корпуса стратокастер (stratocaster), керамические звукосниматели HSS, 5-ти позиционный переключатель, 2 ручки тона(tone), ручка громкости(volume) и фиксированный бридж (hardtail bridge) дают возможность исполнять любой стиль музыки. Корпус из тополя, гриф из клена с профилем C-Shape. Накладка из HPL- композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн на грифом. Струны 10-46 из никелированной стали. В комплект входят ключи для отстройки гитары, кабель, для подключения Jack-Jack и инструкция по уходу за инструментом.", "https://avatars.mds.yandex.net/get-mpic/1522540/img_id8828176765638498087.jpeg/optimize", "ROCKDALE Stars HT HSS Black Limited Edition", 11899m, 98, null }
                 });
 
             migrationBuilder.CreateIndex(

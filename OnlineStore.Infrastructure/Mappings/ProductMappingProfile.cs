@@ -8,7 +8,11 @@ namespace OnlineStore.Infrastructure.Mappings
     {
         public ProductMappingProfile()
         {
-            CreateMap<ShortProductDto, Product>().ReverseMap();
+            CreateMap<ShortProductDto, Product>()
+                .ForMember(
+                    dest => dest.ImageUrl,
+                    opt => opt.MapFrom(src => src.MainImageUrl))
+                .ReverseMap();
         }
     }
 }

@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using OnlineStore.Core.Images;
 using OnlineStore.Core.ProductAttributes.Services;
 using OnlineStore.Core.Products.Services;
 using OnlineStore.MVC.Models;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace OnlineStore.MVC.Controllers
 {
@@ -23,9 +24,8 @@ namespace OnlineStore.MVC.Controllers
             _productAttributeService = productAttributeService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var attribute = await _productAttributeService.GetAsync(1);
             return View();
         }
 

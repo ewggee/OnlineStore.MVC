@@ -1,0 +1,86 @@
+﻿@using OnlineStore.Contracts.Products
+@model ShortProductDto
+
+<div class="col-md-4 mb-4" style="margin: 0 auto;">
+    <div class="image-container">
+        <img class="card-img-top slideshow-image" src="@Model.MainImageUrl" alt="@Model.Name" />
+        @if (Model.ImagesUrls.Length > 0)
+        {
+            @foreach (var image in Model.ImagesUrls)
+            {
+                <img class="card-img-top slideshow-image" src="@image" alt="@Model.Name" />
+            }
+
+            <button class="prev" onclick="plusSlides(-1)">&#10094;</button>
+            <button class="next" onclick="plusSlides(1)">&#10095;</button>
+        }
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="card-text">@Model.Description</p>
+        <p class="card-text text-success">@Model.Price.ToString("C")</p>
+        <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="UpdateProduct" asp-route-productId="@Model.Id">Изменить</a>
+    </div>
+
+    <style>
+        .text-success {
+            font-size: 24px;
+        }
+
+        .image-container {
+            max-width: 430px;
+            position: relative;
+        }
+
+            .image-container img {
+                width: 100%;
+                max-height: 430px;
+                object-fit: contain;
+            }
+
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            margin-top: -22px;
+            padding: 16px;
+            color: black;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.6s ease;
+            user-select: none;
+        }
+
+        .next {
+            right: 0;
+        }
+
+            /* On hover, add a black background color with a little bit see-through */
+            .prev:hover, .next:hover {
+                background-color: rgba(49, 204, 235, 1);
+            }
+    </style>
+
+</div>
+
+<script>
+    let slideIndex = 1;
+    showSlides(slideIndex);
+
+    function plusSlides(n) {
+        showSlides(slideIndex += n);
+    }
+
+    function showSlides(n) {
+        let i;
+        const x = document.getElementsByClassName("slideshow-image");
+        if (n > x.length) { slideIndex = 1 }
+        if (n < 1) { slideIndex = x.length }
+        for (i = 0; i < x.length; i++) {
+            x[i].style.display = "none";
+        }
+        x[slideIndex - 1].style.display = "block";
+    }
+</script>
+

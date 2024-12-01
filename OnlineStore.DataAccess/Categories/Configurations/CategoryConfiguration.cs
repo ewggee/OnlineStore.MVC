@@ -22,7 +22,12 @@ namespace OnlineStore.DataAccess.Categories.Configurations
             builder.Property(c => c.ParentCategoryId)
                 .HasColumnName("parent_category_id");
 
-            // Инициализирование
+            // Связи
+            builder.HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryId);
+
+            // Сидирование
             builder.HasData(
                 new Category
                 {
@@ -32,17 +37,20 @@ namespace OnlineStore.DataAccess.Categories.Configurations
                 new Category
                 {
                     Id = 2,
-                    Name = "Гитары"
+                    Name = "Гитары",
+                    ParentCategoryId = 1
                 },
                 new Category
                 {
                     Id = 3,
-                    Name = "Клавишные"
+                    Name = "Клавишные",
+                    ParentCategoryId = 1
                 },
                 new Category
                 {
                     Id = 4,
-                    Name = "Ударные"
+                    Name = "Ударные",
+                    ParentCategoryId = 1
                 },
                 new Category
                 {
