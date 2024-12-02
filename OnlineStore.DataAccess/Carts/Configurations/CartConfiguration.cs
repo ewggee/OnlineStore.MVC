@@ -34,7 +34,7 @@ namespace OnlineStore.DataAccess.Carts.Configurations
             // Связи
             builder.HasOne(c => c.Status)
                 .WithMany()
-                .HasForeignKey(t => t.StatusId)
+                .HasForeignKey(c => c.StatusId)
                 .IsRequired(true);
         }
     }

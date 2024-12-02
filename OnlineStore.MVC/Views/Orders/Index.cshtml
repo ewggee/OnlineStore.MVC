@@ -1,0 +1,55 @@
+﻿@using OnlineStore.Contracts.Orders
+
+@model List<OrderDto>
+
+<h1>Список заказов</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Номер заказа</th>
+            <th>Общая стоимость</th>
+            <th>Товары</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Id</td>
+                <td>@order.TotalPrice.ToString("C")</td>
+                <td>
+                    <ol>
+                        @foreach (var item in order.Items)
+                        {
+
+                            <li>
+                                @item.ProductName - @item.Quantity x @item.UnitPrice.ToString("C") = @(item.Quantity * item.UnitPrice).ToString("C")
+                            </li>
+                        }
+                    </ol>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@* CSS для стилизации таблицы (можно использовать Bootstrap или другие CSS-фреймворки) *@
+<style>
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+        }
+</style>
+

@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace OnlineStore.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDatabase : Migration
+    public partial class Initialize : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -111,6 +111,19 @@ namespace OnlineStore.DataAccess.Migrations
                         column: x => x.parent_category_id,
                         principalTable: "categories",
                         principalColumn: "category_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "order_statuses",
+                columns: table => new
+                {
+                    order_status_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_order_statuses", x => x.order_status_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -295,6 +308,28 @@ namespace OnlineStore.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "orders",
+                columns: table => new
+                {
+                    order_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    order_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    total_price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    order_status_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_orders", x => x.order_id);
+                    table.ForeignKey(
+                        name: "FK_orders_order_statuses_order_status_id",
+                        column: x => x.order_status_id,
+                        principalTable: "order_statuses",
+                        principalColumn: "order_status_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "cart_product",
                 columns: table => new
                 {
@@ -328,7 +363,6 @@ namespace OnlineStore.DataAccess.Migrations
                     product_image_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    url = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
                     content = table.Column<byte[]>(type: "bytea", nullable: false),
                     content_type = table.Column<string>(type: "text", nullable: true),
                     product_id = table.Column<int>(type: "integer", nullable: true)
@@ -342,6 +376,34 @@ namespace OnlineStore.DataAccess.Migrations
                         principalTable: "products",
                         principalColumn: "product_id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "order_items",
+                columns: table => new
+                {
+                    order_item_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    order_id = table.Column<int>(type: "integer", nullable: false),
+                    product_id = table.Column<int>(type: "integer", nullable: false),
+                    quantity = table.Column<int>(type: "integer", nullable: false),
+                    unit_price = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_order_items", x => x.order_item_id);
+                    table.ForeignKey(
+                        name: "FK_order_items_orders_order_id",
+                        column: x => x.order_id,
+                        principalTable: "orders",
+                        principalColumn: "order_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_order_items_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "products",
+                        principalColumn: "product_id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -396,6 +458,18 @@ namespace OnlineStore.DataAccess.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "order_statuses",
+                columns: new[] { "order_status_id", "name" },
+                values: new object[,]
+                {
+                    { 1, "Принят" },
+                    { 2, "В обработке" },
+                    { 3, "В пути" },
+                    { 4, "Доставлен" },
+                    { 5, "Отменен" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "categories",
                 columns: new[] { "category_id", "name", "parent_category_id" },
                 values: new object[,]
@@ -405,15 +479,6 @@ namespace OnlineStore.DataAccess.Migrations
                     { 4, "Ударные", 1 },
                     { 5, "Бас гитары", 2 },
                     { 6, "Электрогитары", 2 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "products",
-                columns: new[] { "product_id", "category_id", "created_at", "description", "image_url", "name", "price", "stock_quantity", "updated_at" },
-                values: new object[,]
-                {
-                    { 1, 5, new DateTime(2024, 11, 14, 16, 41, 28, 169, DateTimeKind.Utc).AddTicks(2141), "ROCKDALE Stars PB Bass – универсальная бас-гитара с формой корпуса пресижн бас (precision bass). Звукосниматель типа сплит-сингл (split-single) позволяет гитаре звучать особенно напористо, дает характерный мощный звук с особенно выраженными средними частотами. Корпус гитары изготовлен из тополя, гриф из клена с профилем C-Shape. Накладка грифа из HPL-композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн. Струны 45-105 из никелированной стали. В комплект входит набор ключей для отстройки гитары, кабель для подключения Jack-Jack и инструкция по уходу за иструментом. Мензура 864мм.", "https://avatars.mds.yandex.net/get-mpic/1937077/img_id1984092563303990645.jpeg/optimize", "ROCKDALE Stars Precision Bass", 13599m, 134, null },
-                    { 2, 6, new DateTime(2024, 11, 14, 16, 41, 28, 169, DateTimeKind.Utc).AddTicks(2147), "ROCKDALE Stars HT HSS – универсальная электрогитара, полностью выполненная в стильном черном цвете. Подходит для обучения. Форма корпуса стратокастер (stratocaster), керамические звукосниматели HSS, 5-ти позиционный переключатель, 2 ручки тона(tone), ручка громкости(volume) и фиксированный бридж (hardtail bridge) дают возможность исполнять любой стиль музыки. Корпус из тополя, гриф из клена с профилем C-Shape. Накладка из HPL- композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн на грифом. Струны 10-46 из никелированной стали. В комплект входят ключи для отстройки гитары, кабель, для подключения Jack-Jack и инструкция по уходу за инструментом.", "https://avatars.mds.yandex.net/get-mpic/1522540/img_id8828176765638498087.jpeg/optimize", "ROCKDALE Stars HT HSS Black Limited Edition", 11899m, 98, null }
                 });
 
             migrationBuilder.CreateIndex(
@@ -484,6 +549,21 @@ namespace OnlineStore.DataAccess.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_order_items_order_id",
+                table: "order_items",
+                column: "order_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_order_items_product_id",
+                table: "order_items",
+                column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orders_order_status_id",
+                table: "orders",
+                column: "order_status_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_product_images_product_id",
                 table: "product_images",
                 column: "product_id");
@@ -525,6 +605,9 @@ namespace OnlineStore.DataAccess.Migrations
                 name: "notification_channels");
 
             migrationBuilder.DropTable(
+                name: "order_items");
+
+            migrationBuilder.DropTable(
                 name: "product_images");
 
             migrationBuilder.DropTable(
@@ -534,6 +617,9 @@ namespace OnlineStore.DataAccess.Migrations
                 name: "carts");
 
             migrationBuilder.DropTable(
+                name: "orders");
+
+            migrationBuilder.DropTable(
                 name: "products");
 
             migrationBuilder.DropTable(
@@ -541,6 +627,9 @@ namespace OnlineStore.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "cart_statuses");
+
+            migrationBuilder.DropTable(
+                name: "order_statuses");
 
             migrationBuilder.DropTable(
                 name: "categories");

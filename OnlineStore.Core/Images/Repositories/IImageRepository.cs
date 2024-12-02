@@ -13,10 +13,5 @@ namespace OnlineStore.Core.Images.Repositories
         /// </summary>
         /// <returns>ID изображения.</returns>
         Task<int> SaveAsync(ProductImage image, CancellationToken cancellation);
-
-        /// <summary>
-        /// Возвращает изображение по URL.
-        /// </summary>
-        Task<ProductImage?> GetByUrlAsync(string url, CancellationToken cancellation);
     }
 }

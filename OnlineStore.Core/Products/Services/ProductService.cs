@@ -106,7 +106,7 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<List<ShortProductDto>> GetProductsByIdsAsync(List<int> productsIds, CancellationToken cancellation)
+        public async Task<List<ShortProductDto>> GetProductsByIdsAsync(int[] productsIds, CancellationToken cancellation)
         {
             var products = await _productRepository.GetProductsByIdsAsync(productsIds, cancellation);
 
@@ -132,6 +132,14 @@ namespace OnlineStore.Core.Products.Services
             product.UpdatedAt = _dateTimeProvider.UtcNow;
 
             await _productRepository.UpdateAsync(product, cancellation);
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateProductsCountAsync(List<ShortProductDto> productDtos, CancellationToken cancellation)
+        {
+            var products = _mapper.Map<List<Product>>(productDtos);
+
+            await _productRepository.UpdateProductsCountAsync(products, cancellation);
         }
 
         /// <inheritdoc/>

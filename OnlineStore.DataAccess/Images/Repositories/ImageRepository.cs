@@ -10,12 +10,6 @@ namespace OnlineStore.DataAccess.Images.Repositories
         ReadonlyOnlineStoreDbContext readOnlyDbContext)
         : RepositoryBase<ProductImage>(mutableDbContext, readOnlyDbContext), IImageRepository
     {
-        public Task<ProductImage?> GetByUrlAsync(string url, CancellationToken cancellation)
-        {
-            return MutableDbContext.Set<ProductImage>()
-                .FirstOrDefaultAsync(i => i.Url == url, cancellation);
-        }
-
         public async Task<int> SaveAsync(ProductImage image, CancellationToken cancellation)
         {
             await MutableDbContext.AddAsync(image, cancellation);

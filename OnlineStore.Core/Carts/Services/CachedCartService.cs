@@ -88,7 +88,7 @@ namespace OnlineStore.Core.Carts.Services
             await _cacheService.RemoveAsync(CartRedisKeyHelper.GetCartItemsCountKey(user.Id), cancellation);
         }
 
-        public Task Checkout(CancellationToken cancellation)
+        public Task CheckoutAsync(CancellationToken cancellation)
         {
             throw new NotImplementedException();
         }

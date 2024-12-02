@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineStore.Core.Common;
-using OnlineStore.Domain.Entities;
 
 namespace OnlineStore.DataAccess.Common
 {
@@ -22,16 +21,9 @@ namespace OnlineStore.DataAccess.Common
         }
 
         /// <inheritdoc/>
-        public async Task AddAsync(T entity, CancellationToken cancellation)
+        public virtual Task<T> GetAsync(int id)
         {
-            await MutableDbContext.AddAsync(entity, cancellation);
-            await MutableDbContext.SaveChangesAsync(cancellation);
-        }
-
-        public virtual Task DeleteAsync(T entity, CancellationToken cancellation)
-        {
-            MutableDbContext.Remove(entity);
-            return MutableDbContext.SaveChangesAsync(cancellation);
+            return MutableDbContext.FindAsync<T>(id).AsTask();
         }
 
         /// <inheritdoc/>
@@ -41,9 +33,10 @@ namespace OnlineStore.DataAccess.Common
         }
 
         /// <inheritdoc/>
-        public virtual Task<T> GetAsync(int id)
+        public async Task AddAsync(T entity, CancellationToken cancellation)
         {
-            return MutableDbContext.FindAsync<T>(id).AsTask();
+            await MutableDbContext.AddAsync(entity, cancellation);
+            await MutableDbContext.SaveChangesAsync(cancellation);
         }
 
         /// <inheritdoc/>
@@ -52,6 +45,13 @@ namespace OnlineStore.DataAccess.Common
             MutableDbContext.Set<T>().Attach(entity);
             MutableDbContext.Entry(entity).State = EntityState.Modified;
 
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public virtual Task DeleteAsync(T entity, CancellationToken cancellation)
+        {
+            MutableDbContext.Remove(entity);
             return MutableDbContext.SaveChangesAsync(cancellation);
         }
     }

@@ -24,7 +24,7 @@ namespace OnlineStore.DataAccess.Products.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<List<Product>> GetProductsByIdsAsync(List<int> ids, CancellationToken cancellation)
+        public Task<List<Product>> GetProductsByIdsAsync(int[] ids, CancellationToken cancellation)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
@@ -93,6 +93,18 @@ namespace OnlineStore.DataAccess.Products.Repositories
 
             MutableDbContext.Entry(product).State = EntityState.Modified;
             MutableDbContext.Entry(product).Property(p => p.CreatedAt).IsModified = false;
+
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public Task UpdateProductsCountAsync(List<Product> products, CancellationToken cancellation)
+        {
+            foreach (Product product in products)
+            {
+                MutableDbContext.Set<Product>().Attach(product);
+                MutableDbContext.Entry(product).Property(p => p.StockQuantity).IsModified = true;
+            }
 
             return MutableDbContext.SaveChangesAsync(cancellation);
         }

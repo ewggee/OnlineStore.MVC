@@ -40,6 +40,6 @@ namespace OnlineStore.Core.Carts.Services
         /// <summary>
         /// Оформляет корзину текущего пользователя.
         /// </summary>
-        Task Checkout(CancellationToken cancellation);
+        Task CheckoutAsync(CancellationToken cancellation);
     }
 }

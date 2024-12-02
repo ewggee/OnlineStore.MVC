@@ -12,8 +12,8 @@ using OnlineStore.DataAccess.Common;
 namespace OnlineStore.DataAccess.Migrations
 {
     [DbContext(typeof(MutableOnlineStoreDbContext))]
-    [Migration("20241201193902_Orders")]
-    partial class Orders
+    [Migration("20241202162951_Initialize")]
+    partial class Initialize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -455,7 +455,7 @@ namespace OnlineStore.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("order_date");
 
-                    b.Property<int>("OrderStatusId")
+                    b.Property<int>("StatusId")
                         .HasColumnType("integer")
                         .HasColumnName("order_status_id");
 
@@ -471,7 +471,7 @@ namespace OnlineStore.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderStatusId");
+                    b.HasIndex("StatusId");
 
                     b.ToTable("orders", (string)null);
                 });
@@ -613,32 +613,6 @@ namespace OnlineStore.DataAccess.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("products", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CategoryId = 5,
-                            CreatedAt = new DateTime(2024, 12, 1, 19, 39, 0, 949, DateTimeKind.Utc).AddTicks(6166),
-                            Description = "ROCKDALE Stars PB Bass – универсальная бас-гитара с формой корпуса пресижн бас (precision bass). Звукосниматель типа сплит-сингл (split-single) позволяет гитаре звучать особенно напористо, дает характерный мощный звук с особенно выраженными средними частотами. Корпус гитары изготовлен из тополя, гриф из клена с профилем C-Shape. Накладка грифа из HPL-композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн. Струны 45-105 из никелированной стали. В комплект входит набор ключей для отстройки гитары, кабель для подключения Jack-Jack и инструкция по уходу за иструментом. Мензура 864мм.",
-                            ImageUrl = "https://avatars.mds.yandex.net/get-mpic/1937077/img_id1984092563303990645.jpeg/optimize",
-                            IsDeleted = false,
-                            Name = "ROCKDALE Stars Precision Bass",
-                            Price = 13599m,
-                            StockQuantity = 134
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CategoryId = 6,
-                            CreatedAt = new DateTime(2024, 12, 1, 19, 39, 0, 949, DateTimeKind.Utc).AddTicks(6172),
-                            Description = "ROCKDALE Stars HT HSS – универсальная электрогитара, полностью выполненная в стильном черном цвете. Подходит для обучения. Форма корпуса стратокастер (stratocaster), керамические звукосниматели HSS, 5-ти позиционный переключатель, 2 ручки тона(tone), ручка громкости(volume) и фиксированный бридж (hardtail bridge) дают возможность исполнять любой стиль музыки. Корпус из тополя, гриф из клена с профилем C-Shape. Накладка из HPL- композита - современного материала, устойчивого к резким изменениям температуры и влажности. В грифе установлен анкер для регулировки высоты струн на грифом. Струны 10-46 из никелированной стали. В комплект входят ключи для отстройки гитары, кабель, для подключения Jack-Jack и инструкция по уходу за инструментом.",
-                            ImageUrl = "https://avatars.mds.yandex.net/get-mpic/1522540/img_id8828176765638498087.jpeg/optimize",
-                            IsDeleted = false,
-                            Name = "ROCKDALE Stars HT HSS Black Limited Edition",
-                            Price = 11899m,
-                            StockQuantity = 98
-                        });
                 });
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.ProductAttribute", b =>
@@ -730,11 +704,6 @@ namespace OnlineStore.DataAccess.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("integer")
                         .HasColumnName("product_id");
-
-                    b.Property<string>("Url")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasColumnName("url");
 
                     b.HasKey("Id");
 
@@ -850,13 +819,13 @@ namespace OnlineStore.DataAccess.Migrations
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("OnlineStore.Domain.Entities.OrderStatus", "OrderStatus")
+                    b.HasOne("OnlineStore.Domain.Entities.OrderStatus", "Status")
                         .WithMany()
-                        .HasForeignKey("OrderStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("OrderStatus");
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("OnlineStore.Domain.Entities.OrderItem", b =>

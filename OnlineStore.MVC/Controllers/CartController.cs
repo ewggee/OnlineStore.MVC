@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OnlineStore.Contracts.Carts;
 using OnlineStore.Core.Carts.Services;
 using OnlineStore.Core.Products.Services;
 
@@ -41,16 +42,20 @@ namespace OnlineStore.MVC.Controllers
         }
 
         [HttpPost("UpdateItemCount")]
-        public async Task<IActionResult> UpdateItemCount(int productId, int newQuantity, CancellationToken cancellation)
+        public async Task<IActionResult> UpdateItemCount([FromBody] UpdateItemCountRequest request, CancellationToken cancellation)
         {
-            var success = await _cartService.UpdateItemCountAsync(productId, newQuantity, cancellation);
-
-            if (success)
+            if (request == null)
             {
-                return Ok();
+                return BadRequest();
             }
 
-            return BadRequest();
+            var success = await _cartService.UpdateItemCountAsync(request.ProductId, request.NewQuantity, cancellation);
+            if (success == false)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
         }
 
         [HttpPost("RemoveFromCart")]
@@ -63,9 +68,9 @@ namespace OnlineStore.MVC.Controllers
         [HttpPost("Checkout")]
         public async Task<IActionResult> Checkout(CancellationToken cancellation)
         {
+            await _cartService.CheckoutAsync(cancellation);
 
-
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", "Orders");
         }
     }
 }

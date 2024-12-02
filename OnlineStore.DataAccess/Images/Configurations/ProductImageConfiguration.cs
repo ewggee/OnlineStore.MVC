@@ -23,10 +23,6 @@ namespace OnlineStore.DataAccess.Images.Configurations
                 .HasMaxLength(1000)
                 .IsRequired(true);
 
-            builder.Property(pi => pi.Url)
-                .HasColumnName("url")
-                .HasMaxLength(2048);
-
             builder.Property(pi => pi.Content)
                 .HasColumnName("content");
 

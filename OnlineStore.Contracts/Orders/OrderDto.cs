@@ -1,9 +1,6 @@
-﻿namespace OnlineStore.Domain.Entities
+﻿namespace OnlineStore.Contracts.Orders
 {
-    /// <summary>
-    /// Заказ.
-    /// </summary>
-    public sealed class Order
+    public class OrderDto
     {
         /// <summary>
         /// Идентификатор.
@@ -31,13 +28,13 @@
         public int StatusId { get; set; }
 
         /// <summary>
-        /// Статус заказа.
+        /// Наименование статуса заказа.
         /// </summary>
-        public OrderStatus Status { get; set; } = default!;
+        public string OrderStatusName { get; set; } = default!;
 
         /// <summary>
         /// Позиции заказа.
         /// </summary>
-        public ICollection<OrderItem> Items { get; set; } = [];
+        public OrderItemDto[] Items { get; set; } = [];
     }
 }
