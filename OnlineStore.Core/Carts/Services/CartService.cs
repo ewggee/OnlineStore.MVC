@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using OnlineStore.Contracts.Carts;
 using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Orders;
-using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Carts.Repositories;
 using OnlineStore.Core.Common.DateTimeProviders;
 using OnlineStore.Core.Orders.Services;
@@ -13,7 +12,7 @@ using OnlineStore.Domain.Entities;
 namespace OnlineStore.Core.Carts.Services
 {
     /// <summary>
-    /// Сервис по работе с корзиной.
+    /// Сервис по работе с корзиной и заказом.
     /// </summary>
     public sealed class CartService : ICartService
     {
@@ -100,14 +99,14 @@ namespace OnlineStore.Core.Carts.Services
         {
             var cart = await GetCurrentUserCartAsync(cancellation);
 
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
 
             if (newQuantity > product.StockQuantity || newQuantity == 0)
             {
                 return false;
             }
 
-            var productInCart = cart.Products.First(cip => cip.ProductId == productId);
+            var productInCart = cart!.Products.First(cip => cip.ProductId == productId);
             productInCart.Quantity = newQuantity;
 
             await _cartRepository.UpdateAsync(cart, cancellation);
@@ -134,7 +133,7 @@ namespace OnlineStore.Core.Carts.Services
         {
             #region Закрытие корзины
             var cart = await GetCurrentUserCartAsync(cancellation);
-            cart.StatusId = (int)CartStatusEnum.Done;
+            cart!.StatusId = (int)CartStatusEnum.Done;
             cart.Closed = _dateTimeProvider.UtcNow;
 
             await _cartRepository.UpdateAsync(cart, cancellation);
@@ -151,7 +150,7 @@ namespace OnlineStore.Core.Carts.Services
             var totalPrice = 0m;
             foreach (var productInCart in cart.Products)
             {
-                var product = products.FirstOrDefault(p => p.Id == productInCart.ProductId);
+                var product = products.First(p => p.Id == productInCart.ProductId);
                 product.StockQuantity -= productInCart.Quantity;
 
                 var item = new OrderItemDto
@@ -182,7 +181,7 @@ namespace OnlineStore.Core.Carts.Services
         }
 
         /// <summary>
-        /// Добавляет новый товар в корзину или увеличивает количество уже имеющегося товара.
+        /// Добавляет новый товар в корзину или увеличивает количество уже имеющегося на единицу.
         /// </summary>
         /// <param name="cart">Корзина.</param>
         /// <param name="productId">ID товара.</param>
@@ -235,7 +234,7 @@ namespace OnlineStore.Core.Carts.Services
             var totalPrice = 0m;
             foreach (var productInCart in cart.Products)
             {
-                var product = products.FirstOrDefault(p => p.Id == productInCart.ProductId);
+                var product = products.First(p => p.Id == productInCart.ProductId);
                 cartItems.Add(new CartItemDto
                 {
                     Price = product.Price,

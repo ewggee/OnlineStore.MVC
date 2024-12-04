@@ -13,7 +13,7 @@ namespace OnlineStore.Core.Products.Services
         /// Возвращает информацию о продукте по его ID.
         /// </summary>
         /// <param name="productId">Идентификатор продукта.</param>
-        Task<ShortProductDto> GetProductByIdAsync(int productId, CancellationToken cancellation);
+        Task<ShortProductDto> GetAsync(int productId, CancellationToken cancellation);
 
         /// <summary>
         /// Возвращает пагинированный список товаров в категории.
@@ -50,7 +50,7 @@ namespace OnlineStore.Core.Products.Services
         Task UpdateProductsCountAsync(List<ShortProductDto> shortProductDto, CancellationToken cancellation);
 
         /// <summary>
-        /// Удаляет товар по ID.
+        /// "Мягко" удаляет товар по ID.
         /// </summary>
         Task DeleteAsync(int productId, CancellationToken cancellation);
     }

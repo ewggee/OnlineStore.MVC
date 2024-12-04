@@ -12,6 +12,7 @@
     <header>
         @{
             bool isAdmin = User.IsInRole("admin");
+            bool isUser = User.IsInRole("user");
         }
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -31,6 +32,9 @@
                             <li class="nav-item">
                                 <a class="btn btn-primary" asp-area="" asp-controller="AdminCatalog" asp-action="Index">Каталог</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddProduct">Добавить товар</a>
+                            </li>
                         }
                         else
                         {
@@ -47,9 +51,6 @@
                             <li class="nav-item">
                                 <a class="btn btn-danger" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="btn btn-success" asp-area="" asp-controller="Orders" asp-action="Index">История заказов</a>
-                            </li>
                         }
                         else
                         {
@@ -58,6 +59,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="btn btn-success" asp-area="" asp-controller="Account" asp-action="Login">Вход</a>
+                            </li>
+                        }
+                        @if (isUser)
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-success" asp-area="" asp-controller="Orders" asp-action="Index">История заказов</a>
                             </li>
                         }
                     </ul>

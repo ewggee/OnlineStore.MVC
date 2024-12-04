@@ -21,7 +21,7 @@ namespace OnlineStore.DataAccess.Common
         }
 
         /// <inheritdoc/>
-        public virtual Task<T> GetAsync(int id)
+        public virtual Task<T?> GetAsync(int id)
         {
             return MutableDbContext.FindAsync<T>(id).AsTask();
         }

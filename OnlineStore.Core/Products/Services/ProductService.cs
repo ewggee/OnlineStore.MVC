@@ -38,7 +38,7 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ShortProductDto> GetProductByIdAsync(int productId, CancellationToken cancellation)
+        public async Task<ShortProductDto> GetAsync(int productId, CancellationToken cancellation)
         {
             var existingProduct = await _productRepository.GetAsync(productId);
             var productDto = _mapper.Map<ShortProductDto>(existingProduct);
@@ -145,7 +145,8 @@ namespace OnlineStore.Core.Products.Services
         /// <inheritdoc/>
         public async Task DeleteAsync(int productId, CancellationToken cancellation)
         {
-            var product = new Product { Id = productId };
+            var product = await _productRepository.GetAsync(productId);
+            product!.IsDeleted = true;
 
             await _productRepository.DeleteAsync(product, cancellation);
         }

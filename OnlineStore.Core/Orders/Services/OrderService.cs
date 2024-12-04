@@ -31,7 +31,7 @@ namespace OnlineStore.Core.Orders.Services
         {
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
 
-            var orders = await _orderRepository.GetOrdersByUserId(user.Id, cancellation)
+            var orders = await _orderRepository.GetOrdersByUserId(user!.Id, cancellation)
                 ?? [];
 
             var ordersDtos = _mapper.Map<List<OrderDto>>(orders);

@@ -33,8 +33,7 @@ namespace OnlineStore.MVC.Controllers
             return View("Category", mainCategories);
         }
 
-        [HttpGet]
-        [Route("{categoryId}")]
+        [HttpGet("{categoryId}")]
         public async Task<IActionResult> GetCategory(int categoryId, CancellationToken cancellation)
         {
             var existingCategory = await _categoryService.GetAsync(categoryId, cancellation);
@@ -53,8 +52,7 @@ namespace OnlineStore.MVC.Controllers
             return RedirectToAction("GetProductsInCategory", new { categoryId, page = 1 });
         }
 
-        [HttpGet]
-        [Route("{categoryId}/products/")]
+        [HttpGet("{categoryId}/products/")]
         public async Task<IActionResult> GetProductsInCategory(int categoryId, CancellationToken cancellation, int page = 1)
         {
             var existingCategoryDto = await _categoryService.GetAsync(categoryId, cancellation);
@@ -81,11 +79,10 @@ namespace OnlineStore.MVC.Controllers
             return View("ProductsInCategory", result);
         }
 
-        [HttpGet]
-        [Route("product/{productId}")]
+        [HttpGet("product/{productId}")]
         public async Task<IActionResult> GetProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
 
             return View("Product", product);
         }

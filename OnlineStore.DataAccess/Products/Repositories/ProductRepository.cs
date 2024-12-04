@@ -15,20 +15,12 @@ namespace OnlineStore.DataAccess.Products.Repositories
         : RepositoryBase<Product>(mutableDbContext, readOnlyDbContext), IProductRepository
     {
         /// <inheritdoc/>
-        public override Task<List<Product>> GetAllAsync(CancellationToken cancellation)
-        {
-            return ReadOnlyDbContext
-                .Set<Product>()
-                .Include(x => x.Category)
-                .ToListAsync(cancellation);
-        }
-
-        /// <inheritdoc/>
         public Task<List<Product>> GetProductsByIdsAsync(int[] ids, CancellationToken cancellation)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => ids.Contains(p.Id))
+                .Where(p => p.IsDeleted == false)
                 .ToListAsync(cancellation);
         }
 
@@ -38,7 +30,7 @@ namespace OnlineStore.DataAccess.Products.Repositories
             var query = ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.CategoryId == request.CategoryId)
-                .Where(p => !p.IsDeleted);
+                .Where(p => p.IsDeleted == false);
             
             query = query
                 .OrderBy(p => p.Id)
@@ -59,8 +51,8 @@ namespace OnlineStore.DataAccess.Products.Repositories
             var query =
                 ReadOnlyDbContext
                 .Set<Product>()
-                .Where(p => p.IsDeleted == false)
-                .Where(p => p.CategoryId == categoryId);
+                .Where(p => p.CategoryId == categoryId)
+                .Where(p => p.IsDeleted == false);
 
             return query.ToListAsync(cancellation);
         }
@@ -71,17 +63,17 @@ namespace OnlineStore.DataAccess.Products.Repositories
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.CategoryId == categoryId)
-                .Where(p => !p.IsDeleted)
+                .Where(p => p.IsDeleted == false)
                 .CountAsync(cancellation);
         }
 
         /// <inheritdoc/>
-        public override Task<Product> GetAsync(int id)
+        public override Task<Product?> GetAsync(int id)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.Id == id)
-                .Where(p => !p.IsDeleted)
+                .Where(p => p.IsDeleted == false)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync();
         }
@@ -105,6 +97,15 @@ namespace OnlineStore.DataAccess.Products.Repositories
                 MutableDbContext.Set<Product>().Attach(product);
                 MutableDbContext.Entry(product).Property(p => p.StockQuantity).IsModified = true;
             }
+
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public override Task DeleteAsync(Product product, CancellationToken cancellation)
+        {
+            MutableDbContext.Set<Product>().Attach(product);
+            MutableDbContext.Entry(product).Property(p => p.IsDeleted).IsModified = true;
 
             return MutableDbContext.SaveChangesAsync(cancellation);
         }

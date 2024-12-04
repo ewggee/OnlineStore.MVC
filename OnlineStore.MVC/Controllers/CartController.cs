@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineStore.Contracts.Carts;
 using OnlineStore.Core.Carts.Services;
-using OnlineStore.Core.Products.Services;
 
 namespace OnlineStore.MVC.Controllers
 {

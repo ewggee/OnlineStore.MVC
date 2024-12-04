@@ -1,55 +1,143 @@
 ﻿@using OnlineStore.Contracts.Orders
-
 @model List<OrderDto>
+
+@{
+    var activeOrders = Model.Where(o => o.StatusId != 5).OrderByDescending(o => o.Id).ToList();
+    var completedOrders = Model.Where(o => o.StatusId == 5).ToList();
+}
 
 <h1>Список заказов</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Номер заказа</th>
-            <th>Общая стоимость</th>
-            <th>Товары</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var order in Model)
-        {
+@if (activeOrders.Count > 0)
+{
+    <h2>Активные заказы</h2>
+    <table class="table">
+        <thead>
             <tr>
-                <td>@order.Id</td>
-                <td>@order.TotalPrice.ToString("C")</td>
-                <td>
-                    <ol>
-                        @foreach (var item in order.Items)
-                        {
-
-                            <li>
-                                @item.ProductName - @item.Quantity x @item.UnitPrice.ToString("C") = @(item.Quantity * item.UnitPrice).ToString("C")
-                            </li>
-                        }
-                    </ol>
-                </td>
+                <th>Статус</th>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var order in activeOrders)
+            {
+                <tr>
+                    <td style="@(order.StatusId == 4 ? "color: green;" : "")">
+                        @order.OrderStatusName
+                    </td>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 
-@* CSS для стилизации таблицы (можно использовать Bootstrap или другие CSS-фреймворки) *@
+@if (completedOrders.Count > 0)
+{
+    <h2>Завершенные заказы</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in completedOrders)
+            {
+                <tr>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
 <style>
     .table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate; /* Ключевое изменение: separate */
+        border-spacing: 0; /* Убирает лишние пробелы между ячейками */
     }
 
         .table th, .table td {
             border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
+            text-align: center;
+            vertical-align: middle;
         }
-
+          
         .table th {
             background-color: #f2f2f2;
+            font-weight: bold;
         }
-</style>
 
+    .table-sm td, .table-sm th {
+        text-align: left;
+        border: 0px solid white;
+    }
+
+        .table-sm th {
+            background-color: white;
+        }
+/style>

@@ -155,7 +155,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpGet("product/{productId}")]
         public async Task<IActionResult> GetProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
             if (product == null)
             {
                 return NoContent();
@@ -164,8 +164,8 @@ namespace OnlineStore.MVC.Controllers
             return View("Product", product);
         }
 
-        [HttpGet("product/add")]
-        public async Task<IActionResult> AddProduct(CancellationToken cancellation, int? categoryId = null)
+        [HttpGet("products/add")]
+        public async Task<IActionResult> AddProduct(int categoryId, CancellationToken cancellation)
         {
             var categories = await _categoryService.GetWithoutSubcategories(cancellation);
 
@@ -173,7 +173,7 @@ namespace OnlineStore.MVC.Controllers
             return View();
         }
 
-        [HttpPost("product/add")]
+        [HttpPost("products/add")]
         public async Task<IActionResult> AddProduct(ShortProductDto shortProductDto, CancellationToken cancellation)
         {
             await _productService.AddProductAsync(shortProductDto, cancellation);
@@ -184,7 +184,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpGet("product/update/{productId}")]
         public async Task<IActionResult> UpdateProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
             if (product == null)
             {
                 return NoContent();
@@ -207,7 +207,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpPost("product/delete/{productId}")]
         public async Task<IActionResult> DeleteProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
 
             if (product == null)
             {
