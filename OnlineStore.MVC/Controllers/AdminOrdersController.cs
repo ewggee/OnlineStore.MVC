@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Orders;
 using OnlineStore.Core.Common.Models;
@@ -12,7 +13,7 @@ using OnlineStore.Infrastructure.Extensions;
 
 namespace OnlineStore.MVC.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = AppRoles.ADMIN)]
     [Route("admin/orders")]
     public class AdminOrdersController : Controller
     {

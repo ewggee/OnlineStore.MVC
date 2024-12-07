@@ -11,8 +11,8 @@
 <body>
     <header>
         @{
-            bool isAdmin = User.IsInRole("admin");
-            bool isUser = User.IsInRole("user");
+            bool isAdmin = User.IsInRole(AppRoles.ADMIN);
+            bool isUser = User.IsInRole(AppRoles.USER);
         }
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">

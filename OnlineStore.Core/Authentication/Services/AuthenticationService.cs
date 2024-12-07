@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Domain.Entities;
 using System.Transactions;
 
@@ -43,7 +44,7 @@ namespace OnlineStore.Core.Authentication.Services
                     result = await _userManager.CreateAsync(user, password);
                     if (result.Succeeded)
                     {
-                        result = await _userManager.AddToRoleAsync(user, "user");
+                        result = await _userManager.AddToRoleAsync(user, AppRoles.USER);
                     }
 
                     transaction.Complete();

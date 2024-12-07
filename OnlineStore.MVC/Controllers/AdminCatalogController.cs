@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Contracts.Categories;
-using OnlineStore.Contracts.Common;
 using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Categories.Services;
@@ -14,7 +14,7 @@ using OnlineStore.MVC.Models;
 
 namespace OnlineStore.MVC.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = AppRoles.ADMIN)]
     [Route("admin/catalog")]
     public class AdminCatalogController : Controller
     {

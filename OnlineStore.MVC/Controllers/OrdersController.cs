@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Core.Orders.Services;
 
 namespace OnlineStore.MVC.Controllers
 {
-    [Authorize(Roles = "user")]
+    [Authorize(Roles = AppRoles.USER)]
     [Route("orders")]
     public class OrdersController : Controller
     {

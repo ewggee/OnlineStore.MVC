@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Products\Models\GetProductsRequest.cs" />
+    <Compile Remove="bin\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <None Remove="bin\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,10 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\OnlineStore.Contracts\OnlineStore.Contracts.csproj" />
     <ProjectReference Include="..\OnlineStore.Domain\OnlineStore.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Products\Models\" />
   </ItemGroup>
 
 </Project>
