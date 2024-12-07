@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OnlineStore.Core.Products.Models;
+using OnlineStore.Contracts.Categories;
+using OnlineStore.Contracts.Enums;
+using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Products.Repositories;
 using OnlineStore.DataAccess.Common;
 using OnlineStore.Domain.Entities;
@@ -31,16 +33,19 @@ namespace OnlineStore.DataAccess.Products.Repositories
                 .Set<Product>()
                 .Where(p => p.CategoryId == request.CategoryId)
                 .Where(p => p.IsDeleted == false);
-            
-            query = query
-                .OrderBy(p => p.Id)
-                .Skip(request.Skip);
 
-            if (request.Take != 0)
-            {
-                query = query
-                    .Take(request.Take);
-            }
+            query = request.Sort switch
+                    {
+                        ProductsSortEnum.PriceDesc => query.OrderByDescending(p => p.Price),
+                        ProductsSortEnum.PriceAsc => query.OrderBy(p => p.Price),
+                        ProductsSortEnum.NoveltyDesc => query.OrderByDescending(p => p.CreatedAt),
+                        ProductsSortEnum.NoveltyAsc => query.OrderBy(p => p.CreatedAt),
+                        _ => query.OrderBy(p => p.Id)
+                    };
+
+            query = query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize);
 
             return query.ToListAsync(cancellation);
         }

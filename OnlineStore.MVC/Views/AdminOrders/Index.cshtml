@@ -1,0 +1,199 @@
+﻿@using OnlineStore.Contracts.Enums
+@using OnlineStore.Contracts.Orders
+@using OnlineStore.Infrastructure.Extensions
+
+@model OrdersListDto
+
+@if (string.IsNullOrEmpty(Model.UserEmail))
+{
+    <h1>Все заказы</h1>
+}
+else if (Model.UserEmail != null && Model.Result.Count > 0)
+{
+    <h1>Заказы пользователя @Model.UserEmail</h1>
+}
+else if (Model.UserEmail != null && Model.Result.Count == 0)
+{
+    <h1>Пользователь @Model.UserEmail не совершал заказов</h1>
+}
+else
+{
+    <h1>Нет заказов, удовлетворяющих запросу</h1>
+}
+
+@if (Model.Result.Count > 0)
+{
+    <div>
+        <form asp-action="Index" method="get">
+            <input type="hidden" for="page" value="@Model.PageNumber" />
+            <div class="form-group">
+                <!-- Поиск -->
+                <label asp-for="UserEmail">Поиск по Email:</label>
+                <input type="text" class="form-control" asp-for="UserEmail" name="useremail" placeholder="Введите Email пользователя">
+
+                <!-- Фильтры статусов -->
+               @*  @foreach (var status in Enum.GetValues(typeof(OrdersStatusEnum)).Cast<OrdersStatusEnum>())
+                {
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="@((int)status)" name="statuses" value="@status">
+                        <label class="form-check-label" for="@status">@EnumExtensions.GetEnumDescription(status)</label>
+                    </div>
+                } *@
+
+                @foreach (var status in Enum.GetValues(typeof(OrdersStatusEnum)).Cast<OrdersStatusEnum>())
+                {
+                    var isChecked = Model.StatusesIds.Contains((int)status); // Проверка, выбран ли статус
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="@((int)status)" name="statuses" value="@status" @(isChecked ? "checked" : "")>
+                        <label class="form-check-label" for="@status">@EnumExtensions.GetEnumDescription(status)</label>
+                    </div>
+                }
+
+                @* @{
+                    var selectedStatusesIds = new List<int>();
+
+                    @if (Model.Statuses?.Length > 0)
+                    {
+                        foreach (var status in Model.Statuses)
+                        {
+                            selectedStatusesIds.Add((int)status);
+                        }
+                    }
+
+                    @foreach (var status in Enum.GetValues(typeof(OrdersStatusEnum)).Cast<OrdersStatusEnum>())
+                    {
+                        var statusId = (int)status;
+                        var isChecked = selectedStatusesIds.Contains(statusId); // Проверка, выбран ли статус
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="@statusId" name="StatusesIds[]" value="@statusId" @(isChecked ? "checked" : "")>
+                            <label class="form-check-label" for="@statusId">@EnumExtensions.GetEnumDescription(status)</label>
+                        </div>
+                    }
+                } *@
+                
+
+                <!-- Сортировка -->
+                <label class="mt-3 mb-3" asp-for="Sorting">Сортировать:</label>
+                <select class="form-select mb-2" name="sort" asp-for="Sorting" asp-items="@ViewBag.SortingMethod"></select>
+            </div>
+            <button type="submit" class="btn btn-primary mb-3">Поиск</button>
+        </form>
+    </div>
+
+    <!-- Таблица заказов -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Пользователь</th>
+                <th>Статус</th>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.Result)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.UserEmail</td>
+                    <td>
+                        <select id="statusesList" name="statusesList" asp-items="@ViewBag.Statuses" asp-for="@order.StatusId" data-order-id="@order.Id">></select>
+                    </td>
+                    @* <td style="@(order.StatusId == 4 ? "color: green;" : "")">
+                        @order.OrderStatusName
+                    </td> *@
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (!string.IsNullOrEmpty(Model.UserEmail) && Model.Result.Count == 0)
+{
+    <h2>У данного пользователя нет заказов.</h2>
+}
+
+<div>
+    <style>
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+
+        .table-sm td, .table-sm th {
+            text-align: left;
+            border: 0px solid white;
+        }
+
+        .table-sm th {
+            background-color: white;
+        }
+    </style>
+
+    <script>
+        const selects = document.querySelectorAll('select[name="statusesList"]');
+
+        selects.forEach(select => {
+            select.addEventListener('change', async function () {
+                const orderId = this.dataset.orderId;
+                const statusId = this.value;
+
+                const formData = new FormData();
+                formData.append('orderId', orderId);
+                formData.append('statusId', statusId);
+
+                await fetch('@Url.Action("UpdateOrderStatus", "AdminOrders")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                alert('Статус заказа обновлен!');
+            });
+        });
+    </script>
+</div>

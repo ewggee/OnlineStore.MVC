@@ -10,7 +10,12 @@
         /// <summary>
         /// Идентификатор пользователя.
         /// </summary>
-        public int? UserId { get; set; }
+        public int UserId { get; set; }
+
+        /// <summary>
+        /// Email пользователя.
+        /// </summary>
+        public string UserEmail { get; set; } = default!;
 
         /// <summary>
         /// Дата заказа.

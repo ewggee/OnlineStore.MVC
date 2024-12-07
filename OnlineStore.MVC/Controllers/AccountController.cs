@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OnlineStore.Core.Authentication.Services;
 
 namespace OnlineStore.MVC.Controllers
@@ -13,15 +14,18 @@ namespace OnlineStore.MVC.Controllers
             _authenticationService = authenticationService;
         }
 
+        [HttpGet("profile")]
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-        /// <summary>
-        /// Выполняет авторизацию и аутентификацию пользователя.
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
@@ -32,12 +36,6 @@ namespace OnlineStore.MVC.Controllers
 
             ModelState.AddModelError(string.Empty, "Неверный логин или пароль.");
             return View();
-        }
-
-        public async Task<IActionResult> Logout()
-        {
-            await _authenticationService.SignOutAsync(CancellationToken.None);
-            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -57,6 +55,13 @@ namespace OnlineStore.MVC.Controllers
             }
 
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _authenticationService.SignOutAsync(CancellationToken.None);
+            return RedirectToAction("Index", "Home");
         }
     }
 }

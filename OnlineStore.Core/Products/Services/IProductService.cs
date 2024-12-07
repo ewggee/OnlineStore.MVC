@@ -16,11 +16,11 @@ namespace OnlineStore.Core.Products.Services
         Task<ShortProductDto> GetAsync(int productId, CancellationToken cancellation);
 
         /// <summary>
-        /// Возвращает пагинированный список товаров в категории.
+        /// Возвращает список товаров в категории по запросу.
         /// </summary>
         /// <param name="request">Запрос на получение списка товаров.</param>
-        /// <param name="categoryId">ID категории.</param>
-        Task<ProductsListDto> GetProductsInCategoryByRequestAsync(PagedRequest request, CategoryDto categoryDto, CancellationToken cancellation);
+        /// <param name="categoryDto">Существующуая категория.</param>
+        Task<ProductsListDto> GetProductsInCategoryByRequestAsync(GetProductsRequest request, CategoryDto categoryDto, CancellationToken cancellation);
 
         /// <summary>
         /// Возвращает список товаров по ID категории.

@@ -7,6 +7,19 @@
 <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddProduct" asp-route-categoryId="@Model.CategoryDto.Id">Добавить товар</a>
 
 <div>
+    <!-- Сортировка -->
+    <div>
+        <form asp-action="GetProductsInCategory" method="get">
+            <input type="hidden" aor="categoryId" value="@Model.CategoryDto.Id" />
+            <input type="hidden" for="page" value="@Model.PageNumber" />
+            <div class="form-group">
+                <label asp-for="Sorting">Сортировать:</label>
+                <select name="sort" asp-for="Sorting" asp-items="@ViewBag.SortingMethod"></select>
+            </div>
+            <button type="submit" class="btn btn-primary">Применить</button>
+        </form>
+    </div>
+
     <!-- Информация о товарах в категории -->
     <div class="row">
         @foreach (var product in Model.Result)

@@ -22,49 +22,51 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    @if (isAdmin)
-                    {
-                        <p class="navbar-nav">АДМИН</p>
-                    }
                     <ul class="navbar-nav flex-grow-1">
                         @if (isAdmin)
                         {
                             <li class="nav-item">
-                                <a class="btn btn-primary" asp-area="" asp-controller="AdminCatalog" asp-action="Index">Каталог</a>
+                                <a class="btn btn-primary me-2" asp-area="" asp-controller="AdminCatalog" asp-action="Index">Каталог</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddProduct">Добавить товар</a>
+                                <a class="btn btn-primary me-2" asp-controller="AdminCatalog" asp-action="AddProduct">Добавить товар</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary me-2" asp-controller="AdminOrders" asp-action="Index">Заказы</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="btn btn-primary" asp-area="" asp-controller="Catalog" asp-action="Index">Каталог</a>
+                                <a class="btn btn-primary me-2" asp-area="" asp-controller="Catalog" asp-action="Index">Каталог</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-success" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a>
+                                <a class="btn btn-success me-2" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a>
                                 <span id="cart-count" class="badge badge-pill badge-danger" style="margin-left: -10px; margin-top: -30px;">0</span>
                             </li>
                         }
                         @if (User.Identity!.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="btn btn-danger" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a>
+                                <a class="btn btn-danger me-2" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-secondary" asp-area="" asp-controller="Account" asp-action="Profile">Личный кабинет</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="btn btn-secondary" asp-area="" asp-controller="Account" asp-action="Register">Регистрация</a>
+                                <a class="btn btn-secondary me-2" asp-area="" asp-controller="Account" asp-action="Register">Регистрация</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-success" asp-area="" asp-controller="Account" asp-action="Login">Вход</a>
+                                <a class="btn btn-success me-2" asp-area="" asp-controller="Account" asp-action="Login">Вход</a>
                             </li>
                         }
                         @if (isUser)
                         {
                             <li class="nav-item">
-                                <a class="btn btn-success" asp-area="" asp-controller="Orders" asp-action="Index">История заказов</a>
+                                <a class="btn btn-success me-2" asp-area="" asp-controller="Orders" asp-action="Index">История заказов</a>
                             </li>
                         }
                     </ul>
@@ -89,7 +91,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js"></script>
 
-    <!-- Скрипты модальных окон -->
+    <!-- Скрипты -->
     <script>
         $(document).ready(function () {
 
@@ -98,11 +100,12 @@
             $('.add-to-cart-btn').click(function () {
                 var productId = $(this).data('product-id');
                 if (isAuthenticated) {
-                    $.post('@Url.Action("AddToCart", "Cart")', { productId: productId }, function (response) {
-                        alert("Товар добавлен в корзину");
-
-                        // Обновление счетчика корзины
-                        $('#cart-count').text(response.cartCount);
+                    $.ajax({
+                        type: 'POST',
+                        url: '@Url.Action("AddToCart", "Cart")',
+                        success: function (response) {
+                            alert("Товар добавлен в корзину");
+                        }
                     });
                 }
                 else {
@@ -110,29 +113,6 @@
                     alert('Товар добавлен в корзину');
                 }
             });
-
-            if (isAuthenticated) {
-                // Если пользователь авторизован, делаем асинхронный запрос на сервер для получения количества товаров в корзине
-                $.ajax({
-                    type: 'GET',
-                    url: '@Url.Action("GetCartItemCount", "Cart")', // URL, который возвращает количество товаров в корзине
-                    success: function (response) {
-                        // Обновляем счетчик корзины
-                        $('#cart-count').text(response.cartItemCount);
-                    },
-                    error: function (error) {
-                        console.error('Ошибка при получении количества товаров в корзине:', error);
-                    }
-                });
-            }
-            else {
-                // Если пользователь не авторизован, берем данные из LocalStorage
-                var cart = JSON.parse(localStorage.getItem('cart')) || [];
-                var totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-                // Обновляем счетчик корзины
-                $('#cart-count').text(totalCount);
-            }
         });
 
         function addToLocalStorageCart(productId) {
@@ -152,17 +132,7 @@
 
             // Сохраняем обновленную корзину в LocalStorage
             localStorage.setItem('cart', JSON.stringify(cart));
-
-            // Обновляем счетчик в иконке корзины
-            updateCartIcon(cart);
         }
-
-        // Функция для обновления счетчика товаров в корзине на иконке
-        function updateCartIcon(cart) {
-            let totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-            $('#cart-count').text(totalCount);
-        }
-
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

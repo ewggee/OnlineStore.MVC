@@ -1,5 +1,5 @@
-﻿using OnlineStore.Core.Common;
-using OnlineStore.Core.Products.Models;
+﻿using OnlineStore.Contracts.Products;
+using OnlineStore.Core.Common;
 using OnlineStore.Domain.Entities;
 
 namespace OnlineStore.Core.Products.Repositories

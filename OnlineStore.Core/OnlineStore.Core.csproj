@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Products\Models\GetProductsRequest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
@@ -17,6 +21,10 @@
   <ItemGroup>
     <ProjectReference Include="..\OnlineStore.Contracts\OnlineStore.Contracts.csproj" />
     <ProjectReference Include="..\OnlineStore.Domain\OnlineStore.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Products\Models\" />
   </ItemGroup>
 
 </Project>

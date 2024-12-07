@@ -18,7 +18,7 @@ namespace OnlineStore.MVC.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellation)
         {
-            var orders = await _orderService.GetUserOrdersAsync(cancellation);
+            var orders = await _orderService.GetCurrentUserOrdersAsync(cancellation);
 
             return View(orders);
         }

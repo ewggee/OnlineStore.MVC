@@ -36,6 +36,11 @@
         public OrderStatus Status { get; set; } = default!;
 
         /// <summary>
+        /// Пользователь.
+        /// </summary>
+        public ApplicationUser User { get; set; } = default!;
+
+        /// <summary>
         /// Позиции заказа.
         /// </summary>
         public ICollection<OrderItem> Items { get; set; } = [];

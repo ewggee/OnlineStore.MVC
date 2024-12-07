@@ -172,7 +172,7 @@ namespace OnlineStore.Core.Carts.Services
                 UserId = cart.UserId,
                 Items = orderItems.ToArray(),
                 OrderDate = _dateTimeProvider.UtcNow,
-                StatusId = (int)OrderStatusEnum.Accepted,
+                StatusId = (int)OrdersStatusEnum.Accepted,
                 TotalPrice = totalPrice
             };
 

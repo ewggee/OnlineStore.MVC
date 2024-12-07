@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
-using OnlineStore.Contracts.Common;
+using OnlineStore.Contracts.Enums;
+using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Categories.Services;
 using OnlineStore.Core.Common.Models;
 using OnlineStore.Core.Products.Services;
+using OnlineStore.Infrastructure.Extensions;
 
 namespace OnlineStore.MVC.Controllers
 {
@@ -53,11 +56,13 @@ namespace OnlineStore.MVC.Controllers
         }
 
         [HttpGet("{categoryId}/products/")]
-        public async Task<IActionResult> GetProductsInCategory(int categoryId, CancellationToken cancellation, int page = 1)
+        public async Task<IActionResult> GetProductsInCategory(GetProductsRequest request, CancellationToken cancellation)
         {
-            var existingCategoryDto = await _categoryService.GetAsync(categoryId, cancellation);
+            request.PageSize = _paginationOptions.PageSize;
+
+            var existingCategoryDto = await _categoryService.GetAsync(request.CategoryId, cancellation);
             
-            // Проверка, что переданная категория имеет возможность содержать в себе товары.
+            // Проверка, что переданная категория может содержать в себе товары.
             var independentCategories = await _categoryService.GetWithoutSubcategories(cancellation);
 
             var isWithoutSubcategories = independentCategories
@@ -70,11 +75,22 @@ namespace OnlineStore.MVC.Controllers
                 return NoContent();
             }
 
-            var result = await _productService.GetProductsInCategoryByRequestAsync(new PagedRequest
+            var result = await _productService.GetProductsInCategoryByRequestAsync(request, existingCategoryDto, cancellation);
+
+            // ViewBag методов сортировки товаров.
+            var sortingMethodsList = new List<SelectListItem>
             {
-                PageNumber = page,
-                PageSize = _paginationOptions.PageSize
-            }, existingCategoryDto, cancellation);
+                new SelectListItem { Value = "Default", Text = "По умолчанию" }
+            };
+            foreach (ProductsSortEnum method in Enum.GetValues(typeof(ProductsSortEnum)))
+            {
+                sortingMethodsList.Add(new SelectListItem
+                {
+                    Value = method.ToString(),
+                    Text = EnumExtensions.GetEnumDescription(method)
+                });
+            }
+            ViewBag.SortingMethod = sortingMethodsList;
 
             return View("ProductsInCategory", result);
         }

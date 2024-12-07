@@ -10,6 +10,7 @@ namespace OnlineStore.Infrastructure.Mappings
         {
             CreateMap<Order, OrderDto>()
                 .ForMember(dest => dest.OrderStatusName, o => o.MapFrom(src => src.Status.Name))
+                .ForMember(dest => dest.UserEmail, o => o.MapFrom(src => src.User.Email))
                 .ReverseMap();
         }
     }

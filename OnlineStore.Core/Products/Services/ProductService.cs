@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using OnlineStore.Contracts.Categories;
-using OnlineStore.Contracts.Common;
 using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Common.DateTimeProviders;
 using OnlineStore.Core.Images;
 using OnlineStore.Core.Images.Services;
-using OnlineStore.Core.Products.Models;
 using OnlineStore.Core.Products.Repositories;
 using OnlineStore.Domain.Entities;
 
@@ -62,9 +60,9 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ProductsListDto> GetProductsInCategoryByRequestAsync(PagedRequest request, CategoryDto categoryDto, CancellationToken cancellation)
+        public async Task<ProductsListDto> GetProductsInCategoryByRequestAsync(GetProductsRequest request, CategoryDto categoryDto, CancellationToken cancellation)
         {
-            var totalCount = await _productRepository.GetProductsTotalCountAsync(categoryDto.Id, cancellation);
+            var totalCount = await _productRepository.GetProductsTotalCountAsync(request.CategoryId, cancellation);
 
             if (totalCount == 0)
             {
@@ -75,25 +73,22 @@ namespace OnlineStore.Core.Products.Services
                     PageSize = 1,
                     Result = [],
                     CategoryDto = categoryDto,
+                    Sorting = request.Sort
                 };
             }
 
-            var products = await _productRepository.GetProductsAsync(new GetProductsRequest
-            {
-                Take = request.PageSize,
-                Skip = (request.PageNumber - 1) * request.PageSize,
-                CategoryId = categoryDto.Id
-            }, cancellation);
+            var products = await _productRepository.GetProductsAsync(request, cancellation);
 
-            var productListDto = _mapper.Map<List<ShortProductDto>>(products);
+            var productsDtos = _mapper.Map<List<ShortProductDto>>(products);
 
             return new ProductsListDto
             {
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize,
                 TotalCount = totalCount,
-                Result = productListDto,
-                CategoryDto = categoryDto
+                Result = productsDtos,
+                CategoryDto = categoryDto,
+                Sorting = request.Sort
             };
         }
 
