@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using OnlineStore.Contracts.Images;
 using OnlineStore.Core.Images.Repositories;
 using OnlineStore.Domain.Entities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace OnlineStore.Core.Images.Services
 {
@@ -121,6 +120,7 @@ namespace OnlineStore.Core.Images.Services
             return memoryStream.ToArray();
         }
 
+        /// <inheritdoc/>
         public async Task DeleteAsync(int imageId, CancellationToken cancellation)
         {
             var image = new ProductImage { Id = imageId};

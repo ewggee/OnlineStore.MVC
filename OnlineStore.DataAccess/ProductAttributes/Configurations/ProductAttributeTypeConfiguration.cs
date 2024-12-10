@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Domain.Entities;
 using OnlineStore.Contracts.Enums;
-using OnlineStore.Infrastructure.Extensions;
+using OnlineStore.Core.Common.Extensions;
 
 namespace OnlineStore.DataAccess.ProductAttributes.Configurations
 {
@@ -21,7 +21,7 @@ namespace OnlineStore.DataAccess.ProductAttributes.Configurations
                 .HasColumnName("name")
                 .IsRequired(true);
 
-            // Инициализирование
+            // Сидирование
             builder.HasData(
                 Enum.GetValues(typeof(ProductAttributeTypeEnum))
                 .Cast<ProductAttributeTypeEnum>()

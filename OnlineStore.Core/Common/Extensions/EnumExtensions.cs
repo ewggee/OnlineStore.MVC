@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 
-namespace OnlineStore.Infrastructure.Extensions
+namespace OnlineStore.Core.Common.Extensions
 {
     public static class EnumExtensions
     {

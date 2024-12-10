@@ -16,11 +16,6 @@
         public string Name { get; set; } = default!;
 
         /// <summary>
-        /// Ссылка.
-        /// </summary>
-        public string? Url { get; set; } = default!;
-
-        /// <summary>
         /// Контент изображения.
         /// </summary>
         public byte[] Content { get; set; } = default!;

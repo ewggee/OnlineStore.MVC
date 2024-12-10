@@ -1,17 +1,19 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineStore.Contracts.Carts;
-using OnlineStore.Contracts.Common;
 using OnlineStore.Contracts.Enums;
+using OnlineStore.Contracts.Orders;
 using OnlineStore.Core.Carts.Repositories;
 using OnlineStore.Core.Common.DateTimeProviders;
+using OnlineStore.Core.Common.Extensions;
+using OnlineStore.Core.Orders.Services;
 using OnlineStore.Core.Products.Services;
 using OnlineStore.Domain.Entities;
 
 namespace OnlineStore.Core.Carts.Services
 {
     /// <summary>
-    /// Сервис по работе с корзиной.
+    /// Сервис по работе с корзиной и заказом.
     /// </summary>
     public sealed class CartService : ICartService
     {
@@ -20,18 +22,21 @@ namespace OnlineStore.Core.Carts.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IProductService _productService;
+        private readonly IOrderService _orderService;
 
         public CartService(ICartRepository cartRepository,
             UserManager<ApplicationUser> userManager,
             IHttpContextAccessor httpContextAccessor,
             IDateTimeProvider dateTimeProvider,
-            IProductService productService)
+            IProductService productService,
+            IOrderService orderService)
         {
             _cartRepository = cartRepository;
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
             _dateTimeProvider = dateTimeProvider;
             _productService = productService;
+            _orderService = orderService;
         }
 
         /// <inheritdoc/>
@@ -95,18 +100,15 @@ namespace OnlineStore.Core.Carts.Services
         {
             var cart = await GetCurrentUserCartAsync(cancellation);
 
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
 
-            if (newQuantity > product.StockQuantity)
+            if (newQuantity > product.StockQuantity || newQuantity == 0)
             {
                 return false;
             }
 
-            cart.Products =
-                cart.Products
-                .Where(cp => cp.ProductId == productId)
-                .Select(cp => { cp.Quantity = newQuantity; return cp; })
-                .ToList();
+            var productInCart = cart!.Products.First(cip => cip.ProductId == productId);
+            productInCart.Quantity = newQuantity;
 
             await _cartRepository.UpdateAsync(cart, cancellation);
 
@@ -128,15 +130,55 @@ namespace OnlineStore.Core.Carts.Services
         }
 
         /// <inheritdoc/>
-        public async Task Checkout(CancellationToken cancellation)
+        public async Task CheckoutAsync(CancellationToken cancellation)
         {
             var cart = await GetCurrentUserCartAsync(cancellation);
 
-            cart.StatusId = (int)CartStatusEnum.Done;
+            #region Изменение количества товаров, формирование позиций заказа.
+            var productsIds = cart!.Products
+                .Select(cp => cp.ProductId)
+                .ToArray();
+
+            var products = await _productService.GetProductsByIdsAsync(productsIds, cancellation);
+
+            var orderItems = new List<OrderItemDto>(cart.Products.Count);
+            var totalPrice = 0m;
+            foreach (var productInCart in cart.Products)
+            {
+                var product = products.First(p => p.Id == productInCart.ProductId);
+                product.StockQuantity -= productInCart.Quantity;
+
+                var item = new OrderItemDto
+                {
+                    ProductId = productInCart.ProductId,
+                    Quantity = productInCart.Quantity,
+                    UnitPrice = product.Price
+                };
+                orderItems.Add(item);
+                totalPrice += product.Price * productInCart.Quantity;
+            }
+
+            await _productService.UpdateProductsCountAsync(products, cancellation);
+            #endregion
+
+            var orderDto = new OrderDto
+            {
+                UserId = cart.UserId,
+                Items = orderItems.ToArray(),
+                OrderDate = _dateTimeProvider.UtcNow,
+                StatusId = (int)OrdersStatusEnum.Processing,
+                TotalPrice = totalPrice
+            };
+
+            await _orderService.CreateAsync(orderDto, cancellation);
+
+            cart!.StatusId = (int)CartStatusEnum.Done;
+            cart.Closed = _dateTimeProvider.UtcNow;
+            await _cartRepository.UpdateAsync(cart, cancellation);
         }
 
         /// <summary>
-        /// Добавляет новый товар в корзину или увеличивает количество уже имеющегося товара.
+        /// Добавляет новый товар в корзину или увеличивает количество уже имеющегося на единицу.
         /// </summary>
         /// <param name="cart">Корзина.</param>
         /// <param name="productId">ID товара.</param>
@@ -181,7 +223,7 @@ namespace OnlineStore.Core.Carts.Services
         {
             var productsIds = cart.Products
                 .Select(p => p.ProductId)
-                .ToList();
+                .ToArray();
 
             var products = await _productService.GetProductsByIdsAsync(productsIds, cancellation);
 
@@ -189,7 +231,7 @@ namespace OnlineStore.Core.Carts.Services
             var totalPrice = 0m;
             foreach (var productInCart in cart.Products)
             {
-                var product = products.FirstOrDefault(p => p.Id == productInCart.ProductId);
+                var product = products.First(p => p.Id == productInCart.ProductId);
                 cartItems.Add(new CartItemDto
                 {
                     Price = product.Price,

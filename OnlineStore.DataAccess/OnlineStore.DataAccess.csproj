@@ -24,8 +24,4 @@
     <ProjectReference Include="..\OnlineStore.Infrastructure\OnlineStore.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Orders\Repositories\" />
-  </ItemGroup>
-
 </Project>

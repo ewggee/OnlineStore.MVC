@@ -20,7 +20,11 @@
             @foreach (var item in Model.Items)
             {
                 <tr>
-                    <td class="cartItem">@item.ProductName</td>
+                    <td class="cartItem">
+                        <a class="nav nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                            @item.ProductName
+                        </a>
+                    </td>
                     <td class="cartItem">
                         <input type="number" class="update-quantity" data-product-id="@item.ProductId" value="@item.Quantity" min="1">
                     </td>
@@ -28,7 +32,7 @@
                     <td class="cartItem total-price" data-total-price="@(item.Quantity * item.Price)">@((item.Quantity * item.Price).ToString("C"))</td>
                     <td>
                         <form asp-action="RemoveFromCart" asp-route-productId="@item.ProductId" method="post">
-                            <button type="submit">Удалить</button>
+                            <button class="btn btn-danger" type="submit">Удалить</button>
                         </form>
                     </td>
                 </tr>
@@ -39,7 +43,7 @@
     <h2>Итого: <span id="total-price">@Model.TotalPrice.ToString("C")</span></h2>
 
     <form asp-action="Checkout" method="post">
-        <button type="submit">Оформить заказ</button>
+        <button class="btn btn-success" type="submit">Оформить заказ</button>
     </form>
 }
 else
@@ -47,47 +51,72 @@ else
     <h4>Ваша корзина пуста.</h4>
 }
 
+<style>
+    /* Стили для таблицы корзины */
+    #cart-table {
+        width: 80%; /* Ширина таблицы */
+        margin: 20px auto; /* Отступы от краев */
+        border-collapse: collapse; /* Убираем пробелы между ячейками */
+        font-family: sans-serif; /* Шрифт */
+    }
+
+        #cart-table th, #cart-table td {
+            border: 1px solid #ddd; /* Границы ячеек */
+            padding: 8px; /* Отступы внутри ячеек */
+            text-align: left; /* Выравнивание текста по левому краю */
+        }
+
+        #cart-table th {
+            background-color: #f2f2f2; /* Цвет заголовков */
+            font-weight: bold; /* Жирный шрифт заголовков */
+        }
+
+        #cart-table .total-price {
+            text-align: right; /* Выравнивание итоговой цены по правому краю */
+        }
+
+        #cart-table a {
+            text-decoration: none; /* Убираем подчеркивание у ссылок */
+            color: #337ab7; /* Цвет ссылок */
+        }
+
+            #cart-table a:hover {
+                text-decoration: underline; /* Подчеркивание ссылок при наведении */
+            }
+
+</style>
+
 <script>
     const updateQuantityInputs = document.querySelectorAll('.update-quantity');
     const totalPriceSpan = document.getElementById('total-price');
     const cartTable = document.getElementById('cart-table');
 
     updateQuantityInputs.forEach(input => {
-        input.addEventListener('change', async () => {
+        // сохраняем начальное значение для отката при ошибке
+        input.dataset.previousValue = input.value;
+
+        input.addEventListener('input', async () => {
             const productId = parseInt(input.dataset.productId, 10)
             const newQuantity = parseInt(input.value, 10);
 
-            try {
-                const response = await fetch(`@Url.Action("UpdateItemCount", "Cart")`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ productId: productId, newQuantity: newQuantity })
-                });
+            const response = await fetch(`@Url.Action("UpdateItemCount", "Cart")`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productId: productId, newQuantity: newQuantity })
+            });
 
-                if (!response.ok) {
-                    if (response.status === 400) {
-                        alert('Недопустимое количество товара!');
-                        input.value = input.dataset.previousValue; // Вернуть предыдущее значение
-                    } else {
-                        alert('Ошибка обновления корзины. Попробуйте позже.');
-                    }
-                    return;
-                }
-
-                location.reload(); // Перезагрузить страницу после успешного обновления
-
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Ошибка обновления корзины. Попробуйте позже.');
+            if (response.status === 400) {
+                alert('Недопустимое количество товара!');
+                location.reload();
+                return;
             }
 
+            input.dataset.previousValue = newQuantity;
+            recalculateTotalPrice();
         });
-        // сохраняем начальное значение для отката при ошибке
-        input.dataset.previousValue = input.value;
     });
-
 
     // Функция для пересчета итоговой суммы (можно оптимизировать, если нужно)
     function recalculateTotalPrice() {

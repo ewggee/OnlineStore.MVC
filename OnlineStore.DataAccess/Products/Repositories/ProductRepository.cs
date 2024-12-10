@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OnlineStore.Core.Products.Models;
+using OnlineStore.Contracts.Categories;
+using OnlineStore.Contracts.Enums;
+using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Products.Repositories;
 using OnlineStore.DataAccess.Common;
 using OnlineStore.Domain.Entities;
@@ -15,20 +17,12 @@ namespace OnlineStore.DataAccess.Products.Repositories
         : RepositoryBase<Product>(mutableDbContext, readOnlyDbContext), IProductRepository
     {
         /// <inheritdoc/>
-        public override Task<List<Product>> GetAllAsync(CancellationToken cancellation)
-        {
-            return ReadOnlyDbContext
-                .Set<Product>()
-                .Include(x => x.Category)
-                .ToListAsync(cancellation);
-        }
-
-        /// <inheritdoc/>
-        public Task<List<Product>> GetProductsByIdsAsync(List<int> ids, CancellationToken cancellation)
+        public Task<List<Product>> GetProductsByIdsAsync(int[] ids, CancellationToken cancellation)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => ids.Contains(p.Id))
+                .Where(p => p.IsDeleted == false)
                 .ToListAsync(cancellation);
         }
 
@@ -38,17 +32,20 @@ namespace OnlineStore.DataAccess.Products.Repositories
             var query = ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.CategoryId == request.CategoryId)
-                .Where(p => !p.IsDeleted);
-            
-            query = query
-                .OrderBy(p => p.Id)
-                .Skip(request.Skip);
+                .Where(p => p.IsDeleted == false);
 
-            if (request.Take != 0)
-            {
-                query = query
-                    .Take(request.Take);
-            }
+            query = request.Sort switch
+                    {
+                        ProductsSortEnum.PriceDesc => query.OrderByDescending(p => p.Price),
+                        ProductsSortEnum.PriceAsc => query.OrderBy(p => p.Price),
+                        ProductsSortEnum.NoveltyDesc => query.OrderByDescending(p => p.CreatedAt),
+                        ProductsSortEnum.NoveltyAsc => query.OrderBy(p => p.CreatedAt),
+                        _ => query.OrderBy(p => p.Id)
+                    };
+
+            query = query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize);
 
             return query.ToListAsync(cancellation);
         }
@@ -59,8 +56,8 @@ namespace OnlineStore.DataAccess.Products.Repositories
             var query =
                 ReadOnlyDbContext
                 .Set<Product>()
-                .Where(p => p.IsDeleted == false)
-                .Where(p => p.CategoryId == categoryId);
+                .Where(p => p.CategoryId == categoryId)
+                .Where(p => p.IsDeleted == false);
 
             return query.ToListAsync(cancellation);
         }
@@ -71,17 +68,17 @@ namespace OnlineStore.DataAccess.Products.Repositories
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.CategoryId == categoryId)
-                .Where(p => !p.IsDeleted)
+                .Where(p => p.IsDeleted == false)
                 .CountAsync(cancellation);
         }
 
         /// <inheritdoc/>
-        public override Task<Product> GetAsync(int id)
+        public override Task<Product?> GetAsync(int id)
         {
             return ReadOnlyDbContext
                 .Set<Product>()
                 .Where(p => p.Id == id)
-                .Where(p => !p.IsDeleted)
+                .Where(p => p.IsDeleted == false)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync();
         }
@@ -93,6 +90,27 @@ namespace OnlineStore.DataAccess.Products.Repositories
 
             MutableDbContext.Entry(product).State = EntityState.Modified;
             MutableDbContext.Entry(product).Property(p => p.CreatedAt).IsModified = false;
+
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public Task UpdateProductsCountAsync(List<Product> products, CancellationToken cancellation)
+        {
+            foreach (Product product in products)
+            {
+                MutableDbContext.Set<Product>().Attach(product);
+                MutableDbContext.Entry(product).Property(p => p.StockQuantity).IsModified = true;
+            }
+
+            return MutableDbContext.SaveChangesAsync(cancellation);
+        }
+
+        /// <inheritdoc/>
+        public override Task DeleteAsync(Product product, CancellationToken cancellation)
+        {
+            MutableDbContext.Set<Product>().Attach(product);
+            MutableDbContext.Entry(product).Property(p => p.IsDeleted).IsModified = true;
 
             return MutableDbContext.SaveChangesAsync(cancellation);
         }

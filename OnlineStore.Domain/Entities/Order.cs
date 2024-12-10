@@ -28,12 +28,17 @@
         /// <summary>
         /// Идентификатор статуса заказа.
         /// </summary>
-        public int OrderStatusId { get; set; }
+        public int StatusId { get; set; }
 
         /// <summary>
         /// Статус заказа.
         /// </summary>
-        public OrderStatus OrderStatus { get; set; }
+        public OrderStatus? Status { get; set; }
+
+        /// <summary>
+        /// Пользователь.
+        /// </summary>
+        public ApplicationUser? User { get; set; }
 
         /// <summary>
         /// Позиции заказа.

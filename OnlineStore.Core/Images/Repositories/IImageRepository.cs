@@ -15,8 +15,9 @@ namespace OnlineStore.Core.Images.Repositories
         Task<int> SaveAsync(ProductImage image, CancellationToken cancellation);
 
         /// <summary>
-        /// Возвращает изображение по URL.
+        /// Удаляет все изображения в БД с ID == null.
         /// </summary>
-        Task<ProductImage?> GetByUrlAsync(string url, CancellationToken cancellation);
+        /// <returns></returns>
+        Task<int> RemoveImagesWithProductIdNull();
     }
 }

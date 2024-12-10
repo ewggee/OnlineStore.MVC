@@ -28,19 +28,20 @@ namespace OnlineStore.DataAccess.Orders.Configurations
                 .HasPrecision(18, 2)
                 .IsRequired(true);
 
-            builder.Property(o => o.OrderStatusId)
+            builder.Property(o => o.StatusId)
                 .HasColumnName("order_status_id")
                 .IsRequired(true);
 
             // Связи
-            builder.HasOne(o => o.OrderStatus)
+            builder.HasOne(o => o.Status)
                 .WithMany()
-                .HasForeignKey(o => o.OrderStatusId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(o => o.StatusId)
+                .IsRequired(true);
 
             builder.HasMany(o => o.Items)
                 .WithOne(oi => oi.Order)
                 .HasForeignKey(oi => oi.OrderId)
+                .IsRequired(true)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

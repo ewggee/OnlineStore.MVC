@@ -5,37 +5,37 @@ namespace OnlineStore.Contracts.Enums
     /// <summary>
     /// Статус заказа.
     /// </summary>
-    public enum OrderStatusEnum
+    public enum OrdersStatusEnum
     {
-        /// <summary>
-        /// Принят.
-        /// </summary>
-        [Description("Принят")]
-        Accepted = 1,
-
         /// <summary>
         /// В обработке.
         /// </summary>
         [Description("В обработке")]
-        Processing = 2,
-
-        /// <summary>
-        /// В пути.
-        /// </summary>
-        [Description("В пути")]
-        Shipping = 3,
-
-        /// <summary>
-        /// Доставлен.
-        /// </summary>
-        [Description("Доставлен")]
-        Delivered = 4,
+        Processing = 1,
 
         /// <summary>
         /// Отменен.
         /// </summary>
         [Description("Отменен")]
-        Canceled = 5
+        Canceled,
+
+        /// <summary>
+        /// В пути.
+        /// </summary>
+        [Description("В пути")]
+        Shipping,
+
+        /// <summary>
+        /// Доставлен.
+        /// </summary>
+        [Description("Доставлен")]
+        Delivered,
+
+        /// <summary>
+        /// Получен.
+        /// </summary>
+        [Description("Получен")]
+        Accepted
     }
 }
 

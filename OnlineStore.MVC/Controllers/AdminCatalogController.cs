@@ -2,17 +2,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Contracts.Categories;
-using OnlineStore.Contracts.Common;
+using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Categories.Services;
+using OnlineStore.Core.Common.Extensions;
 using OnlineStore.Core.Common.Models;
 using OnlineStore.Core.Products.Services;
 using OnlineStore.MVC.Models;
 
 namespace OnlineStore.MVC.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = AppRoles.ADMIN)]
     [Route("admin/catalog")]
     public class AdminCatalogController : Controller
     {
@@ -135,19 +137,41 @@ namespace OnlineStore.MVC.Controllers
         #region CRUD for Product
 
         [HttpGet("{categoryId}/products/")]
-        public async Task<IActionResult> GetProductsInCategory(int categoryId, CancellationToken cancellation, int page = 1)
+        public async Task<IActionResult> GetProductsInCategory(GetProductsRequest request, CancellationToken cancellation)
         {
-            var existingCategoryDto = await _categoryService.GetAsync(categoryId, cancellation);
-            if (existingCategoryDto == null)
+            request.PageSize = _paginationOptions.ProductsPageSize;
+
+            var existingCategoryDto = await _categoryService.GetAsync(request.CategoryId, cancellation);
+
+            // Проверка, что переданная категория может содержать в себе товары.
+            var independentCategories = await _categoryService.GetWithoutSubcategories(cancellation);
+
+            var isWithoutSubcategories = independentCategories
+                .Select(c => c.Id)
+                .Contains(existingCategoryDto.Id);
+
+            if (existingCategoryDto == null
+                || !isWithoutSubcategories)
             {
                 return NoContent();
             }
 
-            var result = await _productService.GetProductsInCategoryByRequestAsync(new PagedRequest
+            var result = await _productService.GetProductsInCategoryByRequestAsync(request, existingCategoryDto, cancellation);
+
+            // ViewBag методов сортировки товаров.
+            var sortingMethodsList = new List<SelectListItem>
             {
-                PageNumber = page,
-                PageSize = _paginationOptions.PageSize
-            }, existingCategoryDto, cancellation);
+                new SelectListItem { Value = "Default", Text = "По умолчанию" }
+            };
+            foreach (ProductsSortEnum method in Enum.GetValues(typeof(ProductsSortEnum)))
+            {
+                sortingMethodsList.Add(new SelectListItem
+                {
+                    Value = method.ToString(),
+                    Text = EnumExtensions.GetEnumDescription(method)
+                });
+            }
+            ViewBag.SortingMethod = sortingMethodsList;
 
             return View("ProductsInCategory", result);
         }
@@ -155,7 +179,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpGet("product/{productId}")]
         public async Task<IActionResult> GetProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
             if (product == null)
             {
                 return NoContent();
@@ -164,8 +188,8 @@ namespace OnlineStore.MVC.Controllers
             return View("Product", product);
         }
 
-        [HttpGet("product/add")]
-        public async Task<IActionResult> AddProduct(CancellationToken cancellation, int? categoryId = null)
+        [HttpGet("products/add")]
+        public async Task<IActionResult> AddProduct(int categoryId, CancellationToken cancellation)
         {
             var categories = await _categoryService.GetWithoutSubcategories(cancellation);
 
@@ -173,7 +197,7 @@ namespace OnlineStore.MVC.Controllers
             return View();
         }
 
-        [HttpPost("product/add")]
+        [HttpPost("products/add")]
         public async Task<IActionResult> AddProduct(ShortProductDto shortProductDto, CancellationToken cancellation)
         {
             await _productService.AddProductAsync(shortProductDto, cancellation);
@@ -184,7 +208,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpGet("product/update/{productId}")]
         public async Task<IActionResult> UpdateProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
             if (product == null)
             {
                 return NoContent();
@@ -207,7 +231,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpPost("product/delete/{productId}")]
         public async Task<IActionResult> DeleteProduct(int productId, CancellationToken cancellation)
         {
-            var product = await _productService.GetProductByIdAsync(productId, cancellation);
+            var product = await _productService.GetAsync(productId, cancellation);
 
             if (product == null)
             {

@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using OnlineStore.Contracts.Categories;
-using OnlineStore.Contracts.Common;
 using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Common.DateTimeProviders;
 using OnlineStore.Core.Images;
 using OnlineStore.Core.Images.Services;
-using OnlineStore.Core.Products.Models;
 using OnlineStore.Core.Products.Repositories;
 using OnlineStore.Domain.Entities;
 
@@ -38,7 +36,7 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ShortProductDto> GetProductByIdAsync(int productId, CancellationToken cancellation)
+        public async Task<ShortProductDto> GetAsync(int productId, CancellationToken cancellation)
         {
             var existingProduct = await _productRepository.GetAsync(productId);
             var productDto = _mapper.Map<ShortProductDto>(existingProduct);
@@ -62,38 +60,35 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ProductsListDto> GetProductsInCategoryByRequestAsync(PagedRequest request, CategoryDto categoryDto, CancellationToken cancellation)
+        public async Task<ProductsListDto> GetProductsInCategoryByRequestAsync(GetProductsRequest request, CategoryDto categoryDto, CancellationToken cancellation)
         {
-            var totalCount = await _productRepository.GetProductsTotalCountAsync(categoryDto.Id, cancellation);
+            var totalCount = await _productRepository.GetProductsTotalCountAsync(request.CategoryId, cancellation);
 
             if (totalCount == 0)
             {
                 return new ProductsListDto
                 {
-                    PageNumber = 1,
+                    Page = 1,
                     TotalCount = totalCount,
                     PageSize = 1,
                     Result = [],
                     CategoryDto = categoryDto,
+                    Sorting = request.Sort
                 };
             }
 
-            var products = await _productRepository.GetProductsAsync(new GetProductsRequest
-            {
-                Take = request.PageSize,
-                Skip = (request.PageNumber - 1) * request.PageSize,
-                CategoryId = categoryDto.Id
-            }, cancellation);
+            var products = await _productRepository.GetProductsAsync(request, cancellation);
 
-            var productListDto = _mapper.Map<List<ShortProductDto>>(products);
+            var productsDtos = _mapper.Map<List<ShortProductDto>>(products);
 
             return new ProductsListDto
             {
-                PageNumber = request.PageNumber,
+                Page = request.Page,
                 PageSize = request.PageSize,
                 TotalCount = totalCount,
-                Result = productListDto,
-                CategoryDto = categoryDto
+                Result = productsDtos,
+                CategoryDto = categoryDto,
+                Sorting = request.Sort
             };
         }
 
@@ -106,7 +101,7 @@ namespace OnlineStore.Core.Products.Services
         }
 
         /// <inheritdoc/>
-        public async Task<List<ShortProductDto>> GetProductsByIdsAsync(List<int> productsIds, CancellationToken cancellation)
+        public async Task<List<ShortProductDto>> GetProductsByIdsAsync(int[] productsIds, CancellationToken cancellation)
         {
             var products = await _productRepository.GetProductsByIdsAsync(productsIds, cancellation);
 
@@ -130,14 +125,23 @@ namespace OnlineStore.Core.Products.Services
             var product = _mapper.Map<Product>(productDto);
             product.Images = await _imageService.SaveProductImagesAsync(productDto.ImagesUrls, product, cancellation);
             product.UpdatedAt = _dateTimeProvider.UtcNow;
-
+            
             await _productRepository.UpdateAsync(product, cancellation);
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateProductsCountAsync(List<ShortProductDto> productDtos, CancellationToken cancellation)
+        {
+            var products = _mapper.Map<List<Product>>(productDtos);
+
+            await _productRepository.UpdateProductsCountAsync(products, cancellation);
         }
 
         /// <inheritdoc/>
         public async Task DeleteAsync(int productId, CancellationToken cancellation)
         {
-            var product = new Product { Id = productId };
+            var product = await _productRepository.GetAsync(productId);
+            product!.IsDeleted = true;
 
             await _productRepository.DeleteAsync(product, cancellation);
         }

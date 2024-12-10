@@ -1,13 +1,123 @@
-﻿@model LoginViewModel
+﻿@using static System.Runtime.InteropServices.JavaScript.JSType
+@model LoginViewModel
 
-<form asp-action="Login" method="post">
-    <div>
-        <label asp-for="Email">Email</label>
-        <input asp-for="Email" />
+@if (ViewData.ModelState.Count > 0)
+{
+    <div class="alert alert-danger" role="alert">
+        @ViewData.ModelState[""].Errors[0].ErrorMessage
     </div>
-    <div>
-        <label asp-for="Password">Пароль</label>
-        <input asp-for="Password" type="password" />
+}
+
+<form asp-action="Login" method="post" class="needs-validation" novalidate>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Email" class="form-label">Email</label> 
+        <input asp-for="Email" class="form-control" required />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
-    <button type="submit">Войти</button>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Password" class="form-label">Пароль</label>
+        <input asp-for="Password" type="password" class="form-control" required />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3 form-check">
+        <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe">
+        <label asp-for="RememberMe" class="form-check-label" for="rememberMe">Запомнить меня</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Войти</button>
 </form>
+
+<h4>Войти с помощью:</h4>
+<form asp-action="ExternalLogin">
+    <div>
+        <button type="submit" class="btn bg-transparent" name="provider" value="Google">
+            <img src="https://img.icons8.com/?size=50&id=V5cGWnc9R4xj" />
+        </button>
+        <button type="submit" class="btn bg-transparent" name="provider" value="Vkontakte">
+            <img src="https://img.icons8.com/?size=50&id=oa4chNZ4S5fa" />
+        </button>
+        
+    </div>
+</form>
+
+@* @if (Model.Shemes.Count() > 0)
+{
+    <h4>Войти с помощью:</h4>
+
+    <!-- Вход через Google -->
+    <form asp-action="ExternalLogin">
+        <div>
+            @foreach (var provider in Model.Shemes)
+            {
+                <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name">
+                    @provider.DisplayName
+                </button>
+            }
+        </div>
+    </form>
+    
+    <!-- Вход через ВК -->
+    <div class="col-md-4 mb-3">
+      <script src="https://unpkg.com/@@vkid/sdk@@<3.0.0/dist-sdk/umd/index.js"></script>
+      <script type="text/javascript">
+        if ('VKIDSDK' in window) {
+          const VKID = window.VKIDSDK;
+
+          VKID.Config.init({
+            app: 52824834,
+            redirectUrl: 'https://reservedly-delicious-flycatcher.cloudpub.ru/signin-vk',
+            responseMode: VKID.ConfigResponseMode.Callback,
+            source: VKID.ConfigSource.LOWCODE,
+          });
+
+          const oneTap = new VKID.OneTap();
+
+          oneTap.render({
+            container: document.currentScript.parentElement,
+            showAlternativeLogin: true
+          })
+          .on(VKID.WidgetEvents.ERROR, vkidOnError)
+          .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+            const code = payload.code;
+            const deviceId = payload.device_id;
+
+            VKID.Auth.exchangeCode(code, deviceId)
+              .then(vkidOnSuccess)
+              .catch(vkidOnError);
+          });
+    
+          function vkidOnSuccess(data) {
+            // Обработка полученного результата
+          }
+    
+          function vkidOnError(error) {
+            // Обработка ошибки
+          }
+        }
+      </script>
+    </div>
+} *@
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        (function () {
+            'use strict'
+
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

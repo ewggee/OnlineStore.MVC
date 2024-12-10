@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Domain.Entities;
 using OnlineStore.Contracts.Enums;
-using OnlineStore.Infrastructure.Extensions;
+using OnlineStore.Core.Common.Extensions;
 
 namespace OnlineStore.DataAccess.Orders.Configurations
 {
@@ -24,8 +24,8 @@ namespace OnlineStore.DataAccess.Orders.Configurations
 
             // Сидирование
             builder.HasData(
-                Enum.GetValues(typeof(OrderStatusEnum))
-                .Cast<OrderStatusEnum>()
+                Enum.GetValues(typeof(OrdersStatusEnum))
+                .Cast<OrdersStatusEnum>()
                 .Select(e => new OrderStatus
                 {
                     Id = (int)e,

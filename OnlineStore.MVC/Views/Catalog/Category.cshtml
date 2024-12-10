@@ -4,13 +4,11 @@
 
 <h4>@ViewBag.Title</h4>
 
-<ul>
+<nav class="nav flex-column">
     @foreach (var subCategory in Model)
     {
-        <li>
-            <a asp-controller="Catalog" asp-action="GetCategory" asp-route-categoryId="@subCategory.Id">
-                @subCategory.Name
-            </a>
-        </li>
+        <a class="nav-link" asp-controller="Catalog" asp-action="GetCategory" asp-route-categoryId="@subCategory.Id">
+            @subCategory.Name
+        </a>
     }
-</ul>
+</nav>

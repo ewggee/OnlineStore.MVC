@@ -1,0 +1,150 @@
+﻿@using OnlineStore.Contracts.Enums
+@using OnlineStore.Contracts.Orders
+@model List<OrderDto>
+
+@{
+    var activeOrders = Model
+        .Where(o => o.StatusId != (int)OrdersStatusEnum.Accepted)
+        .Where(o => o.StatusId != (int)OrdersStatusEnum.Canceled)
+        .OrderByDescending(o => o.StatusId)
+        .ToList();
+
+    var completedOrders = Model
+        .Where(o => o.StatusId == (int)OrdersStatusEnum.Accepted)
+        .ToList();
+}
+
+<h1>Список заказов</h1>
+
+@if (activeOrders.Count > 0)
+{
+    <h2>Активные заказы</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Статус</th>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in activeOrders)
+            {
+                <tr>
+                    <td style="@(order.StatusId == (int)OrdersStatusEnum.Delivered ? "color: green;" : string.Empty)">
+                        @order.OrderStatusName
+                    </td>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (completedOrders.Count > 0)
+{
+    <h2>Полученные заказы</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in completedOrders)
+            {
+                <tr>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<style>
+    .table {
+        width: 100%;
+        border-collapse: separate; /* Ключевое изменение: separate */
+        border-spacing: 0; /* Убирает лишние пробелы между ячейками */
+    }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+          
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+    .table-sm td, .table-sm th {
+        text-align: left;
+        border: 0px solid white;
+    }
+
+        .table-sm th {
+            background-color: white;
+        }
+</style>

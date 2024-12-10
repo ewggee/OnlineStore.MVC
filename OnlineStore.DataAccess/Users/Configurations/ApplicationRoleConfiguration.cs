@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Domain.Entities;
+using OnlineStore.Contracts.ApplicationRoles;
 
 namespace OnlineStore.DataAccess.Users.Configurations
 {
@@ -17,14 +18,14 @@ namespace OnlineStore.DataAccess.Users.Configurations
                 new ApplicationRole
                 {
                     Id = 1,
-                    Name = "user",
-                    NormalizedName = "USER",
+                    Name = AppRoles.USER,
+                    NormalizedName = AppRoles.USER.ToUpper(),
                 },
                 new ApplicationRole
                 {
                     Id = 2,
-                    Name = "admin",
-                    NormalizedName = "ADMIN",
+                    Name = AppRoles.ADMIN,
+                    NormalizedName = AppRoles.ADMIN.ToUpper(),
                 }
             );
         }

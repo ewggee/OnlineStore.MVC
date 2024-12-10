@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Domain.Entities;
 using OnlineStore.Contracts.Enums;
-using OnlineStore.Infrastructure.Extensions;
+using OnlineStore.Core.Common.Extensions;
 
 namespace OnlineStore.DataAccess.Notifications.Configurations
 {
@@ -21,7 +21,7 @@ namespace OnlineStore.DataAccess.Notifications.Configurations
                 .IsRequired()
                 .HasMaxLength(256);
 
-            // Инициализирование
+            // Сидирование
             builder.HasData(
                 Enum.GetValues(typeof(NotificationChannelEnum))
                 .Cast<NotificationChannelEnum>()

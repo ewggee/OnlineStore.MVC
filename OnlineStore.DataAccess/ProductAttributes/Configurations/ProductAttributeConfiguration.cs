@@ -19,7 +19,7 @@ namespace OnlineStore.DataAccess.ProductAttributes.Configurations
                 .HasColumnName("name")
                 .IsRequired(true);
 
-            // Инициализирование
+            // Сидирование
             builder.HasData(
                 new ProductAttribute
                 {

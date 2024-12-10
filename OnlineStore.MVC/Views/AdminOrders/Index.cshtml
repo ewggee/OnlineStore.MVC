@@ -1,0 +1,230 @@
+﻿@using OnlineStore.Contracts.Enums
+@using OnlineStore.Contracts.Orders
+@using OnlineStore.Core.Common.Extensions
+
+@model OrdersListDto
+
+@if (string.IsNullOrEmpty(Model.UserEmail))
+{
+    <h1>Все заказы</h1>
+}
+else if (Model.UserEmail != null && Model.Result.Count > 0)
+{
+    <h1>Заказы пользователя @Model.UserEmail</h1>
+}
+else if (Model.UserEmail != null && Model.Result.Count == 0)
+{
+    <h1>Пользователь @Model.UserEmail не совершал заказов</h1>
+}
+else
+{
+    <h1>Нет заказов, удовлетворяющих запросу</h1>
+}
+
+<div>
+    <form asp-action="Index" method="get">
+        <input type="hidden" for="page" value="@Model.Page" />
+        <div class="form-group">
+            <div class="d-flex mb-3">
+                <!-- Поиск -->
+                <div class="col-5 me-3">
+                    <label asp-for="UserEmail">Поиск по Email:</label>
+                    <input type="text" class="form-control" asp-for="UserEmail" name="useremail" placeholder="Введите Email пользователя">
+                </div>
+
+                <!-- Сортировка -->
+                <div class="col-3 me-3">
+                    <label asp-for="Sorting">Сортировать:</label>
+                    <select class="form-select" name="sort" asp-for="Sorting" asp-items="@ViewBag.SortingMethod"></select>
+                </div>
+            </div>
+
+            <!-- Фильтры статусов -->
+            <div>
+                @foreach (var status in Enum.GetValues(typeof(OrdersStatusEnum)).Cast<OrdersStatusEnum>())
+                {
+                    var isChecked = Model.StatusesIds.Contains((int)status);
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="@((int)status)" name="statuses" value="@status" @(isChecked ? "checked" : "")>
+                        <label class="form-check-label" for="@status">@EnumExtensions.GetEnumDescription(status)</label>
+                    </div>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3 mb-3">Поиск</button>
+            <button type="button" class="btn btn-secondary mt-3 mb-3 ms-3" onclick="resetFilters()">Сбросить параметры</button>
+        </div>
+    </form>
+</div>
+
+@if (Model.Result.Count > 0)
+{
+    <!-- Таблица заказов -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Пользователь</th>
+                <th>Статус</th>
+                <th>Дата покупки</th>
+                <th>Товары</th>
+                <th>Общая стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.Result)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.UserEmail</td>
+                    <td>
+                        <select class="form-select" id="statusesList" name="statusesList" asp-items="@ViewBag.Statuses" asp-for="@order.StatusId" data-order-id="@order.Id">></select>
+                    </td>
+                    <td>@order.OrderDate</td>
+                    <td>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; vertical-align: central;">Название</th>
+                                    <th>Цена за шт.</th>
+                                    <th style="text-align: center; vertical-align: central;">Количество</th>
+                                    <th>Всего</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in order.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="nav-link" asp-controller="Catalog" asp-action="GetProduct" asp-route-productId="@item.ProductId">
+                                                @item.ProductName
+                                            </a>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td style="text-align: center; vertical-align: central;">@item.Quantity</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- Пагинация -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        <!-- Назад -->
+        @if (Model.Page > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = Model.Page - 1, useremail = Model.UserEmail, statuses = Model.Statuses, sort = Model.Sorting })">Назад</a>
+            </li>
+        }
+
+        <!-- Номера страниц -->
+        @{
+            var pagesCount = Math.Ceiling((decimal)Model.TotalCount / Model.PageSize);
+        }
+        @for (var i = 1; i <= pagesCount; i++)
+        {
+            if (i == Model.Page)
+            {
+                <li class="page-item active">
+                    <span class="page-link">@i</span>
+                </li>
+            }
+            else if (i <= 3 || i == Model.TotalCount || (i >= Model.Page - 2 && i <= Model.Page + 2))
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = i, useremail = Model.UserEmail, statuses = Model.Statuses, sort = Model.Sorting })">@i</a>
+                </li>
+            }
+            else if (i == 4)
+            {
+                <li class="page-item">
+                    <span class="page-link">...</span>
+                </li>
+            }
+            else if (i == pagesCount)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = i, useremail = Model.UserEmail, statuses = Model.Statuses, sort = Model.Sorting })">@i</a>
+                </li>
+            }
+        }
+
+        <!-- Далее -->
+        @if (Model.Page < pagesCount)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = Model.Page + 1,  useremail = Model.UserEmail, statuses = Model.Statuses, sort = Model.Sorting })">Далее</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<div>
+    <style>
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+
+        .table-sm td, .table-sm th {
+            text-align: left;
+            border: 0px solid white;
+        }
+
+        .table-sm th {
+            background-color: white;
+        }
+    </style>
+
+    <script>
+        const selects = document.querySelectorAll('select[name="statusesList"]');
+
+        selects.forEach(select => {
+            select.addEventListener('change', async function () {
+                const orderId = this.dataset.orderId;
+                const statusId = this.value;
+
+                const formData = new FormData();
+                formData.append('orderId', orderId);
+                formData.append('statusId', statusId);
+
+                await fetch('@Url.Action("UpdateOrderStatus", "AdminOrders")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                alert('Статус заказа обновлен!');
+            });
+        });
+
+        function resetFilters() {
+            document.querySelector('input[name="useremail"]').value = '';
+            document.querySelector('select[name="sort"]').selectedIndex = 0;
+            document.querySelectorAll('input[name="statuses"]').forEach(checkbox => checkbox.checked = false);
+            document.getElementById('filterForm').submit();
+        }
+    </script>
+</div>

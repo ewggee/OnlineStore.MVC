@@ -13,7 +13,7 @@
         /// <summary>
         /// Номер текущей страницы.
         /// </summary>
-        public int PageNumber { get; set; }
+        public int Page { get; set; }
 
         /// <summary>
         /// Размер страницы.
