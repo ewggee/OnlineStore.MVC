@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.Domain.Entities;
 using OnlineStore.Contracts.Enums;
-using OnlineStore.Infrastructure.Extensions;
+using OnlineStore.Core.Common.Extensions;
 
 namespace OnlineStore.DataAccess.Orders.Configurations
 {

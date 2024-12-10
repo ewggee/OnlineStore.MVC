@@ -32,7 +32,7 @@ namespace OnlineStore.MVC.Controllers
         }
 
         [HttpPost("AddToCart")]
-        public async Task<IActionResult> AddToCart([FromBody] int productId, CancellationToken cancellation)
+        public async Task<IActionResult> AddToCart(int productId, CancellationToken cancellation)
         {
             await _cartService.AddProductToCartAsync(productId, cancellation);
             
@@ -60,6 +60,7 @@ namespace OnlineStore.MVC.Controllers
         public async Task<IActionResult> RemoveFromCart(int productId, CancellationToken cancellation)
         {
             await _cartService.RemoveItemAsync(productId, cancellation);
+
             return RedirectToAction("Index");
         }
 

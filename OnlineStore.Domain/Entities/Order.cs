@@ -33,12 +33,12 @@
         /// <summary>
         /// Статус заказа.
         /// </summary>
-        public OrderStatus Status { get; set; } = default!;
+        public OrderStatus? Status { get; set; }
 
         /// <summary>
         /// Пользователь.
         /// </summary>
-        public ApplicationUser User { get; set; } = default!;
+        public ApplicationUser? User { get; set; }
 
         /// <summary>
         /// Позиции заказа.

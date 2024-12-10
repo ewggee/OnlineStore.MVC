@@ -13,5 +13,11 @@ namespace OnlineStore.Core.Images.Repositories
         /// </summary>
         /// <returns>ID изображения.</returns>
         Task<int> SaveAsync(ProductImage image, CancellationToken cancellation);
+
+        /// <summary>
+        /// Удаляет все изображения в БД с ID == null.
+        /// </summary>
+        /// <returns></returns>
+        Task<int> RemoveImagesWithProductIdNull();
     }
 }

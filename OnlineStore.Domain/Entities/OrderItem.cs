@@ -33,7 +33,7 @@
         /// <summary>
         /// Товар.
         /// </summary>
-        public Product Product { get; set; } = default!;
+        public Product? Product { get; set; }
 
         /// <summary>
         /// Заказ.

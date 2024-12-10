@@ -6,10 +6,10 @@ using Microsoft.Extensions.Options;
 using OnlineStore.Contracts.ApplicationRoles;
 using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Orders;
+using OnlineStore.Core.Common.Extensions;
 using OnlineStore.Core.Common.Models;
 using OnlineStore.Core.Orders.Services;
 using OnlineStore.Domain.Entities;
-using OnlineStore.Infrastructure.Extensions;
 
 namespace OnlineStore.MVC.Controllers
 {
@@ -33,9 +33,7 @@ namespace OnlineStore.MVC.Controllers
 
         public async Task<IActionResult> Index(GetOrdersRequest request, CancellationToken cancellation)
         {
-            // СПОСОБ 2
-
-            request.PageSize = _paginationOptions.PageSize;
+            request.PageSize = _paginationOptions.OrdersPageSize;
 
             var isUserEmailSearched = !string.IsNullOrEmpty(request.UserEmail);
 
@@ -45,43 +43,16 @@ namespace OnlineStore.MVC.Controllers
 
             if (isUserEmailSearched && user == null)
             {
-                // По запросу ничего не найдено
-                return NotFound();
+                // По вашему запросу ничего не найдено
+                return NoContent();
             }
 
-            request.UserId = user!.Id;
+            request.UserId = user?.Id;
             var ordersListDto = await _orderService.GetOrdersByRequestAsync(request, cancellation);
 
             InitializeViewBags();
 
             return View(ordersListDto);
-
-            // СПОСОБ 1
-
-            //OrdersListDto ordersListDto;
-            
-            //if (request.UserEmail == null)
-            //{
-            //    ordersListDto = await _orderService.GetOrdersByRequestAsync(request, cancellation);
-
-            //    InitializeViewBags();
-
-            //    return View(ordersListDto);
-            //}
-
-            //var user = await _userManager.FindByEmailAsync(request.UserEmail);
-            //if (user == null)
-            //{
-            //    // По запросу ничего не найдено
-            //    return NotFound();
-            //}
-
-            //request.UserId = user.Id;
-            //ordersListDto = await _orderService.GetOrdersByRequestAsync(request, cancellation);
-
-            //InitializeViewBags();
-
-            //return View(ordersListDto);
         }
 
         [HttpPost]

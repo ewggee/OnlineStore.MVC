@@ -6,8 +6,10 @@
 {
     <h4>@Model.CategoryDto.Name</h4>
 
-    <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="UpdateCategory" asp-route-categoryId="@Model.CategoryDto.Id">Изменить</a>
-    <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddCategory" asp-route-parentCategoryId="@Model.CategoryDto.Id">Добавить подкатегорию</a>
+    <nav>
+        <a class="btn btn-primary me-2" asp-controller="AdminCatalog" asp-action="UpdateCategory" asp-route-categoryId="@Model.CategoryDto.Id">Изменить</a>
+        <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddCategory" asp-route-parentCategoryId="@Model.CategoryDto.Id">Добавить подкатегорию</a>
+    </nav>
 }
 else
 {
@@ -16,23 +18,11 @@ else
     <a class="btn btn-primary" asp-controller="AdminCatalog" asp-action="AddCategory">Добавить категорию</a>
 }
 
-<ul>
-    @if (Model.Subcategories.Count > 0)
+<nav class="nav flex-column">
+    @foreach (var subCategory in Model.Subcategories)
     {
-        @foreach (var subCategory in Model.Subcategories)
-        {
-            <li>
-                <a asp-controller="AdminCatalog" asp-action="GetCategory" asp-route-categoryId="@subCategory.Id">
-                    @subCategory.Name
-                </a>
-            </li>
-        }
+        <a class="nav-link" asp-controller="AdminCatalog" asp-action="GetCategory" asp-route-categoryId="@subCategory.Id">
+            @subCategory.Name
+        </a>
     }
-</ul>
-
-<style>
-    .btn btn-primary {
-        width: 100px;
-        float: right;
-    }
-</style>
+</nav>

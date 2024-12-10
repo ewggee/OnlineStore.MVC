@@ -44,7 +44,7 @@ namespace OnlineStore.DataAccess.Products.Repositories
                     };
 
             query = query
-                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize);
 
             return query.ToListAsync(cancellation);

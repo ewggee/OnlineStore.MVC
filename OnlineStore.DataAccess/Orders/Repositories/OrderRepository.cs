@@ -52,8 +52,8 @@ namespace OnlineStore.DataAccess.Orders.Repositories
 
             query = request.Sort switch
             {
-                OrdersSortEnum.CreatedDateDesc => query.OrderBy(o => o.OrderDate),
-                OrdersSortEnum.CreatedDateAsc => query.OrderByDescending(o => o.OrderDate),
+                OrdersSortEnum.CreatedDateAsc => query.OrderBy(o => o.OrderDate),
+                OrdersSortEnum.CreatedDateDesc => query.OrderByDescending(o => o.OrderDate),
                 OrdersSortEnum.TotalPriceAsc => query.OrderBy(o => o.TotalPrice),
                 OrdersSortEnum.TotalPriceDesc => query.OrderByDescending(o => o.TotalPrice),
                 OrdersSortEnum.StatusAsc => query.OrderBy(o => o.StatusId),
@@ -62,7 +62,7 @@ namespace OnlineStore.DataAccess.Orders.Repositories
             };
 
             query = query
-                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize);
 
             return query.ToListAsync(cancellation);

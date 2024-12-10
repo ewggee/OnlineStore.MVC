@@ -4,7 +4,10 @@ namespace OnlineStore.Core.Common.Models
 {
     public class PaginationOptions
     {
-        [ConfigurationKeyName("PageSize")]
-        public int PageSize { get; set; }
+        [ConfigurationKeyName("ProductsPageSize")]
+        public int ProductsPageSize { get; set; }
+
+        [ConfigurationKeyName("OrdersPageSize")]
+        public int OrdersPageSize { get; set; }
     }
 }

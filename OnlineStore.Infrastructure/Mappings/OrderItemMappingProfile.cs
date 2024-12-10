@@ -9,8 +9,9 @@ namespace OnlineStore.Infrastructure.Mappings
         public OrderItemMappingProfile()
         {
             CreateMap<OrderItem, OrderItemDto>()
-                .ForMember(dest => dest.ProductName, o => o.MapFrom(src => src.Product.Name))
-                .ReverseMap();
+                .ForMember(dest => dest.ProductName, o => o.MapFrom(src => src.Product.Name));
+
+            CreateMap<OrderItemDto, OrderItem>();
         }
     }
 }

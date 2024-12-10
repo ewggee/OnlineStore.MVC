@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Orders;
+using OnlineStore.Core.Common.Extensions;
 using OnlineStore.Core.Orders.Repositories;
 using OnlineStore.Domain.Entities;
 
@@ -48,7 +50,7 @@ namespace OnlineStore.Core.Orders.Services
             {
                 return new OrdersListDto
                 {
-                    PageNumber = 1,
+                    Page = 1,
                     PageSize = 1,
                     Result = [],
                     TotalCount = 0,
@@ -68,7 +70,7 @@ namespace OnlineStore.Core.Orders.Services
 
             return new OrdersListDto
             {
-                PageNumber = request.PageNumber,
+                Page = request.Page,
                 PageSize = request.PageSize,
                 Result = ordersDtos,
                 TotalCount = totalCount,

@@ -13,6 +13,6 @@
         /// <summary>
         /// Номер страницы.
         /// </summary>
-        public int PageNumber { get; set; } = 1;
+        public int Page { get; set; } = 1;
     }
 }

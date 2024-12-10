@@ -7,9 +7,9 @@ using OnlineStore.Contracts.Categories;
 using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Products;
 using OnlineStore.Core.Categories.Services;
+using OnlineStore.Core.Common.Extensions;
 using OnlineStore.Core.Common.Models;
 using OnlineStore.Core.Products.Services;
-using OnlineStore.Infrastructure.Extensions;
 using OnlineStore.MVC.Models;
 
 namespace OnlineStore.MVC.Controllers
@@ -139,7 +139,7 @@ namespace OnlineStore.MVC.Controllers
         [HttpGet("{categoryId}/products/")]
         public async Task<IActionResult> GetProductsInCategory(GetProductsRequest request, CancellationToken cancellation)
         {
-            request.PageSize = _paginationOptions.PageSize;
+            request.PageSize = _paginationOptions.ProductsPageSize;
 
             var existingCategoryDto = await _categoryService.GetAsync(request.CategoryId, cancellation);
 

@@ -34,6 +34,9 @@
                             <li class="nav-item">
                                 <a class="btn btn-primary me-2" asp-controller="AdminOrders" asp-action="Index">Заказы</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary me-2" href="https://localhost:7210/hangfire">Hangfire</a>
+                            </li>
                         }
                         else
                         {
@@ -41,17 +44,24 @@
                                 <a class="btn btn-primary me-2" asp-area="" asp-controller="Catalog" asp-action="Index">Каталог</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-success me-2" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a>
-                                <span id="cart-count" class="badge badge-pill badge-danger" style="margin-left: -10px; margin-top: -30px;">0</span>
+                                <a class="btn btn-primary me-2" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a>
+                                @* <span id="cart-count" class="badge badge-pill badge-danger" style="margin-left: -10px; margin-top: -30px;">0</span> *@
                             </li>
                         }
                         @if (User.Identity!.IsAuthenticated)
                         {
-                            <li class="nav-item">
-                                <a class="btn btn-danger me-2" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-secondary" asp-area="" asp-controller="Account" asp-action="Profile">Личный кабинет</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" style="color: black;" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Личный кабинет
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Профиль</a></li>
+                                    @if (isUser)
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Orders" asp-action="Index">История заказов</a></li>
+                                    }
+                                    <li><a class="dropdown-item logout-link" asp-controller="Account" asp-action="Logout">Выйти</a></li>
+                                </ul>
                             </li>
                         }
                         else
@@ -61,12 +71,6 @@
                             </li>
                             <li class="nav-item">
                                 <a class="btn btn-success me-2" asp-area="" asp-controller="Account" asp-action="Login">Вход</a>
-                            </li>
-                        }
-                        @if (isUser)
-                        {
-                            <li class="nav-item">
-                                <a class="btn btn-success me-2" asp-area="" asp-controller="Orders" asp-action="Index">История заказов</a>
                             </li>
                         }
                     </ul>
@@ -94,18 +98,16 @@
     <!-- Скрипты -->
     <script>
         $(document).ready(function () {
-
-            var isAuthenticated = '@User.Identity.IsAuthenticated' === 'True';
-
             $('.add-to-cart-btn').click(function () {
                 var productId = $(this).data('product-id');
+                var isAuthenticated = '@User.Identity.IsAuthenticated' === 'True';
+
                 if (isAuthenticated) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '@Url.Action("AddToCart", "Cart")',
-                        success: function (response) {
-                            alert("Товар добавлен в корзину");
-                        }
+                    $.post('@Url.Action("AddToCart", "Cart")', { productId: productId }, function (response) {
+                        alert("Товар добавлен в корзину");
+
+                        // Обновление счетчика корзины
+                        $('#cart-count').text(response.cartCount);
                     });
                 }
                 else {

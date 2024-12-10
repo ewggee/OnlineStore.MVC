@@ -4,19 +4,28 @@
 
 <h4>@Model.CategoryDto.Name</h4>
 
+<div class="d-inline-flex mb-3">
+    <form asp-action="GetProductsInCategory" method="get">
+        <input type="hidden" name="categoryId" value="@Model.CategoryDto.Id" />
+        <input type="hidden" name="page" value="@Model.Page" />
+        <label asp-for="Sorting">Сортировать:</label>
+        <select class="form-select" name="sort" asp-for="Sorting" asp-items="@ViewBag.SortingMethod"></select>
+    </form>
+</div>
+
 <div>
     <!-- Сортировка -->
-    <div>
+    @* <div>
         <form asp-action="GetProductsInCategory" method="get">
             <input type="hidden" aor="categoryId" value="@Model.CategoryDto.Id" />
-            <input type="hidden" for="page" value="@Model.PageNumber" />
+            <input type="hidden" for="page" value="@Model.Page" />
             <div class="form-group">
                 <label asp-for="Sorting">Сортировать:</label>
                 <select name="sort" asp-for="Sorting" asp-items="@ViewBag.SortingMethod"></select>
             </div>
             <button type="submit" class="btn btn-primary">Применить</button>
         </form>
-    </div>
+    </div> *@
 
     <!-- Информация о товарах в категории -->
     <div class="row">
@@ -76,10 +85,10 @@
     <nav aria-label="Page navigation example">
         <ul class="pagination justify-content-center">
             <!-- Назад -->
-            @if (Model.PageNumber > 1)
+            @if (Model.Page > 1)
             {
                 <li class="page-item">
-                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.PageNumber - 1 })">Назад</a>
+                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.Page - 1, sort = Model.Sorting })">Назад</a>
                 </li>
             }
 
@@ -89,16 +98,16 @@
             }
             @for (var i = 1; i <= pagesCount; i++)
             {
-                if (i == Model.PageNumber)
+                if (i == Model.Page)
                 {
                     <li class="page-item active">
                         <span class="page-link">@i</span>
                     </li>
                 }
-                else if (i <= 3 || i == Model.TotalCount || (i >= Model.PageNumber - 2 && i <= Model.PageNumber + 2))
+                else if (i <= 3 || i == Model.TotalCount || (i >= Model.Page - 2 && i <= Model.Page + 2))
                 {
                     <li class="page-item">
-                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i })">@i</a>
+                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i, sort = Model.Sorting })">@i</a>
                     </li>
                 }
                 else if (i == 4)
@@ -110,18 +119,30 @@
                 else if (i == pagesCount)
                 {
                     <li class="page-item">
-                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i })">@i</a>
+                        <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = i, sort = Model.Sorting })">@i</a>
                     </li>
                 }
             }
 
             <!-- Далее -->
-            @if (Model.PageNumber < pagesCount)
+            @if (Model.Page < pagesCount)
             {
                 <li class="page-item">
-                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.PageNumber + 1 })">Далее</a>
+                    <a class="page-link" href="@Url.Action("GetProductsInCategory", new { categoryId = Model.CategoryDto.Id, page = Model.Page + 1, sort = Model.Sorting })">Далее</a>
                 </li>
             }
         </ul>
     </nav>
 </div>
+
+<script>
+    const selects = document.querySelectorAll('select[name="sort"]');
+
+    selects.forEach(select => {
+        select.addEventListener('change', function () {
+            const form = this.closest('form');
+
+            form.submit();
+        });
+    });
+</script>

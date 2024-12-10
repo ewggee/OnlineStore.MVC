@@ -5,6 +5,7 @@ using OnlineStore.Contracts.Enums;
 using OnlineStore.Contracts.Orders;
 using OnlineStore.Core.Carts.Repositories;
 using OnlineStore.Core.Common.DateTimeProviders;
+using OnlineStore.Core.Common.Extensions;
 using OnlineStore.Core.Orders.Services;
 using OnlineStore.Core.Products.Services;
 using OnlineStore.Domain.Entities;
@@ -131,16 +132,10 @@ namespace OnlineStore.Core.Carts.Services
         /// <inheritdoc/>
         public async Task CheckoutAsync(CancellationToken cancellation)
         {
-            #region Закрытие корзины
             var cart = await GetCurrentUserCartAsync(cancellation);
-            cart!.StatusId = (int)CartStatusEnum.Done;
-            cart.Closed = _dateTimeProvider.UtcNow;
-
-            await _cartRepository.UpdateAsync(cart, cancellation);
-            #endregion
 
             #region Изменение количества товаров, формирование позиций заказа.
-            var productsIds = cart.Products
+            var productsIds = cart!.Products
                 .Select(cp => cp.ProductId)
                 .ToArray();
 
@@ -166,18 +161,20 @@ namespace OnlineStore.Core.Carts.Services
             await _productService.UpdateProductsCountAsync(products, cancellation);
             #endregion
 
-            #region Формирование заказа.
-            var order = new OrderDto
+            var orderDto = new OrderDto
             {
                 UserId = cart.UserId,
                 Items = orderItems.ToArray(),
                 OrderDate = _dateTimeProvider.UtcNow,
-                StatusId = (int)OrdersStatusEnum.Accepted,
+                StatusId = (int)OrdersStatusEnum.Processing,
                 TotalPrice = totalPrice
             };
 
-            await _orderService.CreateAsync(order, cancellation);
-            #endregion
+            await _orderService.CreateAsync(orderDto, cancellation);
+
+            cart!.StatusId = (int)CartStatusEnum.Done;
+            cart.Closed = _dateTimeProvider.UtcNow;
+            await _cartRepository.UpdateAsync(cart, cancellation);
         }
 
         /// <summary>

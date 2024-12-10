@@ -2,30 +2,32 @@
 
 @model CategoryWithSubcategoriesViewModel
 
-<h4>Редактирование категории</h4>
+<div class="col-md-4 mb-4" style="margin: 0 auto;">
+    <h2 class="mb-4">Редактирование категории</h2>
 
-<form asp-controller="AdminCatalog" asp-action="UpdateCategory" method="post">
-    <input type="hidden" asp-for="CategoryDto!.Id" />
-    <div>
-        <label asp-for="CategoryDto!.Name">Название</label>
-        <input size="30" asp-for="CategoryDto!.Name" value="@Model.CategoryDto!.Name"/>
-    </div>
-    <div>
-        <label asp-for="CategoryDto!.ParentCategoryId">Родительская категория</label>
-        <select asp-for="CategoryDto!.ParentCategoryId" asp-items="ViewBag.Categories">
-            <option value="">Без родительской категории</option>
-        </select>
-    </div>
-    <div>
-        <input class="btn btn-primary" type="submit" value="Применить" />
-    </div>
-</form>
+    <form asp-controller="AdminCatalog" asp-action="UpdateCategory" method="post" class="needs-validation" novalidate>
+        <input type="hidden" asp-for="CategoryDto!.Id" />
 
-@if (ViewBag.Products.Count == 0 && Model.Subcategories?.Count == 0)
-{
-    <form asp-controller="AdminCatalog" asp-action="DeleteCategory" asp-route-categoryId="@Model.CategoryDto.Id" method="post">
-        <div>
-            <input class="btn btn-primary" type="submit" value="Удалить" />
-        </div>    
+        <div class="mb-3">
+            <label asp-for="CategoryDto!.Name" class="form-label">Название</label>
+            <input type="text" class="form-control" asp-for="CategoryDto!.Name" value="@Model.CategoryDto!.Name" required />
+            <div class="invalid-feedback">Введите название категории</div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="CategoryDto!.ParentCategoryId" class="form-label">Родительская категория</label>
+            <select class="form-select" asp-for="CategoryDto!.ParentCategoryId" asp-items="ViewBag.Categories">
+                <option value="">Без родительской категории</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>
-}
+
+    @if (ViewBag.Products.Count == 0 && Model.Subcategories?.Count == 0)
+    {
+        <form asp-controller="AdminCatalog" asp-action="DeleteCategory" asp-route-categoryId="@Model.CategoryDto.Id" method="post" class="mt-3">
+            <button type="submit" class="btn btn-danger">Удалить категорию</button>
+        </form>
+    }
+</div>

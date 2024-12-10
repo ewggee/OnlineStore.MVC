@@ -68,7 +68,7 @@ namespace OnlineStore.Core.Products.Services
             {
                 return new ProductsListDto
                 {
-                    PageNumber = 1,
+                    Page = 1,
                     TotalCount = totalCount,
                     PageSize = 1,
                     Result = [],
@@ -83,7 +83,7 @@ namespace OnlineStore.Core.Products.Services
 
             return new ProductsListDto
             {
-                PageNumber = request.PageNumber,
+                Page = request.Page,
                 PageSize = request.PageSize,
                 TotalCount = totalCount,
                 Result = productsDtos,
@@ -125,7 +125,7 @@ namespace OnlineStore.Core.Products.Services
             var product = _mapper.Map<Product>(productDto);
             product.Images = await _imageService.SaveProductImagesAsync(productDto.ImagesUrls, product, cancellation);
             product.UpdatedAt = _dateTimeProvider.UtcNow;
-
+            
             await _productRepository.UpdateAsync(product, cancellation);
         }
 

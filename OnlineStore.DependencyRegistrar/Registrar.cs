@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +23,7 @@ using OnlineStore.Core.ProductAttributes.Repositories;
 using OnlineStore.Core.ProductAttributes.Services;
 using OnlineStore.Core.Products.Repositories;
 using OnlineStore.Core.Products.Services;
+using OnlineStore.Core.Users.Services;
 using OnlineStore.DataAccess.Carts.Repositories;
 using OnlineStore.DataAccess.Categories.Repositories;
 using OnlineStore.DataAccess.Common;
@@ -29,6 +32,7 @@ using OnlineStore.DataAccess.Orders.Repositories;
 using OnlineStore.DataAccess.ProductAttributes.Repositories;
 using OnlineStore.DataAccess.Products.Repositories;
 using OnlineStore.Domain.Entities;
+using OnlineStore.Infrastructure;
 using OnlineStore.Infrastructure.Mappings;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
@@ -46,10 +50,23 @@ namespace OnlineStore.DependencyRegistrar
                 .AddEntityFrameworkStores<MutableOnlineStoreDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = configuration["Authentication:Google:ClientId"];
+                    options.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+                })
+                .AddVkontakte(options =>
+                {
+                    options.ClientId = "52824834";
+                    options.ClientSecret = "sKYrhShMqdHK1AyUGnWY";
+                });
+
             RegisterOptions(services, configuration);
             RegisterRepositories(services, configuration);
             RegisterServices(services, configuration);
             RegisterMapper(services);
+            RegisterHangfire(services, configuration);
         }
 
         private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
@@ -84,13 +101,14 @@ namespace OnlineStore.DependencyRegistrar
 
             services.AddStackExchangeRedisExtensions<NewtonsoftSerializer>(redisConfiguration);
 
-            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IStoreAuthenticationService, AuthenticationService>();
             services.AddScoped<IProductAttributeService, ProductAttributeService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IUserService, UserService>();
 
             services.AddSingleton<IRedisCache, RedisCache>();
             services.AddSingleton<ICacheService, RedisCacheService>();
@@ -119,6 +137,23 @@ namespace OnlineStore.DependencyRegistrar
 
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
+        }
+
+        private static void RegisterHangfire(IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddTransient<JobScheduler>();
+
+            services.AddHangfire(conf =>
+                conf.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(options =>
+                {
+                    options.UseNpgsqlConnection(configuration.GetConnectionString("DefaultConnection"));
+                })
+            );
+
+            services.AddHangfireServer();
         }
     }
 }

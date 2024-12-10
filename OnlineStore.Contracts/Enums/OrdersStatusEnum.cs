@@ -8,16 +8,16 @@ namespace OnlineStore.Contracts.Enums
     public enum OrdersStatusEnum
     {
         /// <summary>
-        /// Принят.
-        /// </summary>
-        [Description("Принят")]
-        Accepted = 1,
-
-        /// <summary>
         /// В обработке.
         /// </summary>
         [Description("В обработке")]
-        Processing,
+        Processing = 1,
+
+        /// <summary>
+        /// Отменен.
+        /// </summary>
+        [Description("Отменен")]
+        Canceled,
 
         /// <summary>
         /// В пути.
@@ -32,10 +32,10 @@ namespace OnlineStore.Contracts.Enums
         Delivered,
 
         /// <summary>
-        /// Отменен.
+        /// Получен.
         /// </summary>
-        [Description("Отменен")]
-        Canceled
+        [Description("Получен")]
+        Accepted
     }
 }
 

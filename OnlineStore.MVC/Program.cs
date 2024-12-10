@@ -1,4 +1,7 @@
+using Hangfire;
 using OnlineStore.DependencyRegistrar;
+using OnlineStore.Infrastructure;
+using OnlineStore.MVC.Filtres;
 
 namespace OnlineStore.MVC
 {
@@ -8,7 +11,6 @@ namespace OnlineStore.MVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             Registrar.RegisterComponents(builder.Services, builder.Configuration);
@@ -29,6 +31,18 @@ namespace OnlineStore.MVC
             app.UseRouting();
 
             app.UseAuthorization();
+
+            var options = new DashboardOptions
+            {
+                Authorization = new[] { new HangfireAuthorizationFilter() }
+            };
+            app.UseHangfireDashboard("/hangfire", options);
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var jobScheduler = scope.ServiceProvider.GetRequiredService<JobScheduler>();
+                jobScheduler.ScheduleJobs();
+            }
 
             app.MapControllerRoute(
                 name: "default",

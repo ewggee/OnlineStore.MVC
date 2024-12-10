@@ -2,20 +2,26 @@
 
 @model CategoryDto
 
-<h4>Добавление категории</h4>
+<div class="col-md-4 mb-4" style="margin: 0 auto;">
+    <form asp-controller="AdminCatalog" asp-action="AddCategory" method="post">
+        <form asp-controller="AdminCatalog" asp-action="AddCategory" method="post" class="needs-validation" novalidate>
+            <h2 class="mb-4">Добавление категории</h2>
 
-<form asp-controller="AdminCatalog" asp-action="AddCategory" method="post">
-    <div>
-        <label asp-for="Name">Название</label>
-        <input size="30" asp-for="Name" />
-    </div>
-    <div>
-        <label asp-for="ParentCategoryId">Родительская категория</label>
-        <select asp-for="ParentCategoryId" asp-items="ViewBag.Categories">
-            <option value="">Без родительской категории</option>
-        </select>
-    </div>
-    <div>
-        <input type="submit" value="Добавить" />
-    </div>
-</form>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Название</label>
+                <input type="text" class="form-control" asp-for="Name" required />
+                <div class="invalid-feedback">Пожалуйста, введите название.</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ParentCategoryId" class="form-label">Родительская категория</label>
+                <select class="form-select" asp-for="ParentCategoryId" asp-items="ViewBag.Categories">
+                    <option value="">Без родительской категории</option>
+                </select>
+                <div class="invalid-feedback">Пожалуйста, выберите родительскую категорию.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Добавить</button>
+        </form>
+    </form>
+</div>
